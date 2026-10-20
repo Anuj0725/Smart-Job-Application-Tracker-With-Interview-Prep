@@ -10,8 +10,8 @@ Cohort is a web application that helps students track job applications, log inte
 
 ### 👥 Team
 - **Backend**: Anuj Madhani, Harshit Goyal, Achintya Chandwani, Dev Bhavsar
-- **Frontend**: Anshul Rai, Chinmay Dak
-- **AI/ML**: Aaditya Kaushik, Nirmal Nakum, Ved Dhanani, Abhishek Singh
+- **Frontend**: Anshul Rai, Chinmay Dak, Abhishek Singh
+- **AI/ML**: Aaditya Kaushik, Nirmal Nakum, Ved Dhanani
 
 ### 📖 Docs
 - [Overview](./docs/overview.md) • [Requirements](./docs/requirements.md) • [Tech Stack](./docs/tech-stack.md)
