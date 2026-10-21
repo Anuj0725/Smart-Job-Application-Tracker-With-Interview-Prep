@@ -29,5 +29,5 @@ IT314 Software Engineering project.
 | Department | Members |
 |---|---|
 | Backend | Anuj Madhani, Harshit Goyal, Achintya Chandwani, Dev Bhavsar |
-| Frontend | Anshul Rai, Chinmay Dak |
-| AI/ML | Aaditya Kaushik, Nirmal Nakum, Ved Dhanani, Abhishek Singh |
+| Frontend | Anshul Rai, Chinmay Dak, Abhishek Singh |
+| AI/ML | Aaditya Kaushik, Nirmal Nakum, Ved Dhanani |
