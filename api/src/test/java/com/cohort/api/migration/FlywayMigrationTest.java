@@ -24,8 +24,18 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
         try (Connection connection = dataSource.getConnection()) {
             assertThat(tableExists(connection, "users")).isTrue();
             assertThat(tableExists(connection, "refresh_tokens")).isTrue();
+            assertThat(tableExists(connection, "companies")).isTrue();
+            assertThat(tableExists(connection, "applications")).isTrue();
+            assertThat(tableExists(connection, "application_status_history")).isTrue();
+            assertThat(tableExists(connection, "tags")).isTrue();
+            assertThat(tableExists(connection, "application_tags")).isTrue();
             assertThat(columnExists(connection, "users", "email")).isTrue();
             assertThat(columnExists(connection, "refresh_tokens", "token_hash")).isTrue();
+            assertThat(columnExists(connection, "companies", "normalized_name")).isTrue();
+            assertThat(columnExists(connection, "applications", "current_stage")).isTrue();
+            assertThat(columnExists(connection, "applications", "stage_entered_at")).isTrue();
+            assertThat(columnExists(connection, "application_status_history", "to_status")).isTrue();
+            assertThat(columnExists(connection, "tags", "name")).isTrue();
         }
     }
 
@@ -42,7 +52,7 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
                     versions.add(rs.getString("version"));
                 }
             }
-            assertThat(versions).containsExactly("1", "2");
+            assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6");
         }
     }
 
