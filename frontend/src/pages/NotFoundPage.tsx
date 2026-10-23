@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CompassIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function NotFoundPage() {
   return (
@@ -14,12 +15,9 @@ export function NotFoundPage() {
           The link may be broken, or the page may have moved.
         </p>
       </div>
-      <Link
-        to="/"
-        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
-      >
-        Return home
-      </Link>
+      <Button asChild>
+        <Link to="/">Return home</Link>
+      </Button>
     </div>
   )
 }
