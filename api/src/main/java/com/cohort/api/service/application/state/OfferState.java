@@ -1,0 +1,30 @@
+package com.cohort.api.service.application.state;
+
+import com.cohort.api.entity.ApplicationStatus;
+import java.util.Set;
+
+public final class OfferState implements ApplicationStatusState {
+    @Override
+    public ApplicationStatus status() {
+        return ApplicationStatus.OFFER;
+    }
+
+    @Override
+    public Set<ApplicationStatus> allowedTransitions() {
+        return Set.of(
+                ApplicationStatus.ACCEPTED,
+                ApplicationStatus.DECLINED,
+                ApplicationStatus.REJECTED,
+                ApplicationStatus.WITHDRAWN);
+    }
+
+    @Override
+    public Set<ApplicationStatus> correctionTransitions() {
+        return Set.of(
+                ApplicationStatus.SAVED,
+                ApplicationStatus.APPLIED,
+                ApplicationStatus.OA,
+                ApplicationStatus.INTERVIEW,
+                ApplicationStatus.FINAL_ROUND);
+    }
+}
