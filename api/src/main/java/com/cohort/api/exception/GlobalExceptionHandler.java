@@ -40,6 +40,18 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("VALIDATION_ERROR", "This endpoint expects a file upload (multipart/form-data)."));
     }
 
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ApiError> handleInvalidFile(InvalidFileException ex) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(ApiError.of("INVALID_FILE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(FileTooLargeException.class)
+    public ResponseEntity<ApiError> handleFileTooLarge(FileTooLargeException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiError.of("FILE_TOO_LARGE", ex.getMessage()));
+    }
+
     // Larger than the servlet multipart cap.
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiError> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
