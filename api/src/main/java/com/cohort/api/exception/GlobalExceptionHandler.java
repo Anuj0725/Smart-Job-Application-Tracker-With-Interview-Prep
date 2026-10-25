@@ -67,4 +67,16 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("FILE_TOO_LARGE", ex.getMessage()));
     }
 
+
+    @ExceptionHandler(ApplicationNotFoundException.class)
+    public ResponseEntity<ApiError> handleApplicationNotFound(ApplicationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("APPLICATION_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadableBody(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("VALIDATION_ERROR", "The request body is missing or contains an invalid value."));
+    }
 }
