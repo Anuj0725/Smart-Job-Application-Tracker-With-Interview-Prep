@@ -1,7 +1,9 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import { BrandMark } from '@/components/brand/BrandMark'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
+import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { RegisterPage } from '@/pages/RegisterPage'
 
 function HomePage() {
   return (
@@ -18,6 +20,12 @@ function HomePage() {
         <Link to="/" className="text-primary hover:underline">
           Home
         </Link>
+        <Link to="/login" className="text-primary hover:underline">
+          Log in
+        </Link>
+        <Link to="/register" className="text-primary hover:underline">
+          Register
+        </Link>
         <Link to="/not-found-preview" className="text-muted-foreground hover:underline">
           404 Page
         </Link>
@@ -30,6 +38,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
