@@ -79,4 +79,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(ApiError.of("VALIDATION_ERROR", "The request body is missing or contains an invalid value."));
     }
+
+    @ExceptionHandler(AiUnavailableException.class)
+    public ResponseEntity<ApiError> handleAiUnavailable(AiUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiError.of("AI_UNAVAILABLE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AiRateLimitExceededException.class)
+    public ResponseEntity<ApiError> handleAiRateLimit(AiRateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiError.of("AI_RATE_LIMITED", ex.getMessage()));
+    }
 }
+
