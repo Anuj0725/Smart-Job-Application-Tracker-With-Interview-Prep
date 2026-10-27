@@ -8,7 +8,7 @@ on:
 
 jobs:
   api:
-    name: API: build, test, coverage gate
+    name: "API: build, test, coverage gate"
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -43,7 +43,7 @@ jobs:
           retention-days: 14
 
   fl-service:
-    name: fl-service: pytest
+    name: "fl-service: pytest"
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -66,7 +66,7 @@ jobs:
         run: pytest
 
   frontend:
-    name: Frontend: lint, test, build
+    name: "Frontend: lint, test, build"
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

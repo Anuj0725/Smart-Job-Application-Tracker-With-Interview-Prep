@@ -17,6 +17,10 @@ spring:
     hibernate:
       # Flyway owns the schema; Hibernate only ever checks it matches.
       ddl-auto: validate
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 7MB
 
 app:
   cors:
@@ -29,12 +33,5 @@ app:
     login-rate-limit:
       max-attempts: 10
       window-minutes: 15
-
-  servlet:
-    multipart:
-      max-file-size: 6MB
-      max-request-size: 7MB
-
-app:
   resume-storage:
     base-dir: ${RESUME_STORAGE_DIR:./data/resumes}
