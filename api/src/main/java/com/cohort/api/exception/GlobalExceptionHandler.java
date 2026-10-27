@@ -101,5 +101,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ApiError.of("AI_RATE_LIMITED", ex.getMessage()));
     }
+
+    @ExceptionHandler(ResumeNotFoundException.class)
+    public ResponseEntity<ApiError> handleResumeNotFound(ResumeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RESUME_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResumeSectionNotFoundException.class)
+    public ResponseEntity<ApiError> handleResumeSectionNotFound(ResumeSectionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RESUME_SECTION_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResumeFileNotFoundException.class)
+    public ResponseEntity<ApiError> handleResumeFileNotFound(ResumeFileNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RESUME_FILE_NOT_FOUND", ex.getMessage()));
+    }
 }
 
