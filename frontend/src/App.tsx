@@ -4,6 +4,10 @@ import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { ApplicationsListPage } from '@/pages/applications/ApplicationsListPage'
+import { ApplicationDetailPage } from '@/pages/applications/ApplicationDetailPage'
+import { ApplicationFormPage } from '@/pages/applications/ApplicationFormPage'
 
 function HomePage() {
   return (
@@ -19,6 +23,9 @@ function HomePage() {
       <nav className="flex gap-4 text-sm font-medium">
         <Link to="/" className="text-primary hover:underline">
           Home
+        </Link>
+        <Link to="/applications" className="text-primary hover:underline">
+          Applications
         </Link>
         <Link to="/login" className="text-primary hover:underline">
           Log in
@@ -40,6 +47,12 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/applications" element={<ApplicationsListPage />} />
+        <Route path="/applications/new" element={<ApplicationFormPage />} />
+        <Route path="/applications/:id" element={<ApplicationDetailPage />} />
+        <Route path="/applications/:id/edit" element={<ApplicationFormPage />} />
+      </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
