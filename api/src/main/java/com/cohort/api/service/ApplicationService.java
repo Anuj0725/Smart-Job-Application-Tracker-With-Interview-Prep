@@ -1,6 +1,9 @@
 package com.cohort.api.service;
 
 import com.cohort.api.dto.ApplicationDetailResponse;
+import com.cohort.api.dto.ApplicationSearchCriteria;
+import com.cohort.api.repository.specification.ApplicationSpecifications;
+import org.springframework.data.jpa.domain.Specification;
 import com.cohort.api.dto.ApplicationStatusHistoryResponse;
 import com.cohort.api.dto.ApplicationSummary;
 import com.cohort.api.dto.ChangeStatusRequest;
@@ -68,9 +71,11 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public PagedResponse<ApplicationSummary> list(UUID userId, int page, int size, String sort, String direction) {
+    public PagedResponse<ApplicationSummary> list(
+            UUID userId, ApplicationSearchCriteria criteria, int page, int size, String sort, String direction) {
         Pageable pageable = PageRequest.of(page, size, resolveSort(sort, direction));
-        Page<Application> result = applicationRepository.findAllByUserId(userId, pageable);
+        Specification<Application> spec = ApplicationSpecifications.combine(userId, criteria);
+        Page<Application> result = applicationRepository.findAll(spec, pageable);
         Map<UUID, Company> companiesById = loadCompanies(userId, result.getContent());
 
         List<ApplicationSummary> items = result.getContent().stream()
