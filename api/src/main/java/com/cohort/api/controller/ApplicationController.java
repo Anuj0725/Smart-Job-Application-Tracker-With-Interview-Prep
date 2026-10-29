@@ -1,6 +1,8 @@
 package com.cohort.api.controller;
 
 import com.cohort.api.dto.ApplicationDetailResponse;
+import com.cohort.api.dto.StalledApplicationResponse;
+import com.cohort.api.service.application.StallDetectionService;
 import com.cohort.api.dto.ApplicationSearchCriteria;
 import com.cohort.api.entity.Application;
 import com.cohort.api.entity.ApplicationStatus;
@@ -35,9 +37,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
+    private final StallDetectionService stallDetectionService;
 
-    public ApplicationController(ApplicationService applicationService) {
+    public ApplicationController(ApplicationService applicationService, StallDetectionService stallDetectionService) {
         this.applicationService = applicationService;
+        this.stallDetectionService = stallDetectionService;
     }
 
     @PostMapping
@@ -92,6 +96,13 @@ public class ApplicationController {
     @GetMapping("/{id}/history")
     public List<ApplicationStatusHistoryResponse> history(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         return applicationService.history(userId(jwt), id);
+    }
+
+    @GetMapping("/stalled")
+    public List<StalledApplicationResponse> stalled(@AuthenticationPrincipal Jwt jwt) {
+        return stallDetectionService.detectStalled(userId(jwt)).stream()
+                .map(StalledApplicationResponse::from)
+                .toList();
     }
 
     private UUID userId(Jwt jwt) {
