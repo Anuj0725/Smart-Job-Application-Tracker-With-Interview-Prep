@@ -44,6 +44,16 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("REGISTRATION_CONFLICT", ex.getMessage()));
     }
 
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<ApiError> handleEmailInUse(EmailAlreadyInUseException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiError.of("EMAIL_CONFLICT", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidAccountRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidAccountRequest(InvalidAccountRequestException ex) {
+        return ResponseEntity.badRequest().body(ApiError.of("VALIDATION_ERROR", ex.getMessage(), ex.getFieldErrors()));
+    }
+
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<ApiError> handleRateLimit(RateLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
@@ -58,7 +68,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidFileException.class)
     public ResponseEntity<ApiError> handleInvalidFile(InvalidFileException ex) {
-        return ResponseEntity.badRequest().body(ApiError.of("INVALID_FILE", ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(ApiError.of("INVALID_FILE", ex.getMessage()));
     }
 
     @ExceptionHandler(FileTooLargeException.class)
@@ -90,6 +101,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleAiRateLimit(AiRateLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ApiError.of("AI_RATE_LIMITED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResumeNotFoundException.class)
+    public ResponseEntity<ApiError> handleResumeNotFound(ResumeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RESUME_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResumeSectionNotFoundException.class)
+    public ResponseEntity<ApiError> handleResumeSectionNotFound(ResumeSectionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RESUME_SECTION_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResumeFileNotFoundException.class)
+    public ResponseEntity<ApiError> handleResumeFileNotFound(ResumeFileNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RESUME_FILE_NOT_FOUND", ex.getMessage()));
     }
 }
 
