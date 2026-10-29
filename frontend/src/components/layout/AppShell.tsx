@@ -1,0 +1,92 @@
+import { useEffect, useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Search } from 'lucide-react'
+import { BrandGlyph } from '@/components/brand/BrandMark'
+import { AppSidebar } from '@/components/layout/AppSidebar'
+import { MobileNav } from '@/components/layout/MobileNav'
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { ShortcutsDialog } from '@/components/layout/ShortcutsDialog'
+import { useShortcuts, type ShortcutAction } from '@/hooks/use-shortcuts'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
+import { Separator } from '@/components/ui/separator'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { breadcrumbsFor, pageTitleFor } from '@/lib/navigation'
+
+const WIDE_LAYOUT_MIN_PX = 1280
+
+function prefersExpandedSidebar(): boolean {
+  return typeof window === 'undefined' || window.innerWidth >= WIDE_LAYOUT_MIN_PX
+}
+
+export function AppShell() {
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+
+  useShortcuts((action: ShortcutAction) => {
+    if (action === 'help') {
+      setShortcutsOpen(true)
+    } else if (action === 'search') {
+      const filter = document.getElementById('filter-q')
+      if (filter) {
+        filter.focus()
+      }
+    } else if (action === 'new-application') {
+      navigate('/applications/new')
+    } else if (action === 'go-applications') {
+      navigate('/applications')
+    } else if (action === 'go-dashboard') {
+      navigate('/')
+    } else {
+      navigate('/prep')
+    }
+  })
+
+  useEffect(() => {
+    document.title = `${pageTitleFor(pathname)} · Cohort`
+  }, [pathname])
+
+  return (
+    <SidebarProvider defaultOpen={prefersExpandedSidebar()}>
+      <a
+        href="#main"
+        className="sr-only z-[110] rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Skip to content
+      </a>
+      <AppSidebar />
+      <SidebarInset className="min-w-0">
+        <header className="sticky print:hidden bg-background top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
+          <SidebarTrigger className="hidden md:inline-flex" aria-label="Toggle sidebar" />
+          <Link to="/" aria-label="Cohort dashboard" className="rounded-lg md:hidden">
+            <BrandGlyph className="size-7" />
+          </Link>
+          <Separator orientation="vertical" className="h-4" />
+          <Breadcrumbs crumbs={breadcrumbsFor(pathname)} />
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Open command palette"
+              className="inline-flex h-8 items-center gap-2 rounded-lg border bg-card/60 max-sm:h-10 max-sm:min-w-10 max-sm:justify-center px-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
+            >
+              <Search aria-hidden className="size-3.5" />
+              <span className="hidden pr-6 sm:inline">Search</span>
+              <span className="hidden items-center gap-0.5 sm:inline-flex">
+                <kbd className="kbd">Ctrl</kbd>
+                <kbd className="kbd">K</kbd>
+              </span>
+            </button>
+            <ThemeToggle className="hidden sm:inline-flex" />
+          </div>
+        </header>
+        <main id="main" tabIndex={-1} className="flex-1 px-4 pt-5 pb-24 sm:px-6 sm:pt-6 md:pb-8 outline-none lg:px-8">
+          <div className="mx-auto w-full max-w-7xl">
+            <Outlet />
+          </div>
+        </main>
+      </SidebarInset>
+      <MobileNav />
+      <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+    </SidebarProvider>
+  )
+}
