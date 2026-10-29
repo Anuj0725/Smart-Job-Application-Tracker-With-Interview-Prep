@@ -68,7 +68,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidFileException.class)
     public ResponseEntity<ApiError> handleInvalidFile(InvalidFileException ex) {
-        return ResponseEntity.badRequest().body(ApiError.of("INVALID_FILE", ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(ApiError.of("INVALID_FILE", ex.getMessage()));
     }
 
     @ExceptionHandler(FileTooLargeException.class)
