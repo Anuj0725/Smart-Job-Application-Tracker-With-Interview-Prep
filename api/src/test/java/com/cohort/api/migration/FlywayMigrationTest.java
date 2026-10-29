@@ -36,6 +36,14 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             assertThat(columnExists(connection, "applications", "stage_entered_at")).isTrue();
             assertThat(columnExists(connection, "application_status_history", "to_status")).isTrue();
             assertThat(columnExists(connection, "tags", "name")).isTrue();
+            assertThat(tableExists(connection, "interviews")).isTrue();
+            assertThat(tableExists(connection, "interview_questions")).isTrue();
+            assertThat(tableExists(connection, "interview_feedback")).isTrue();
+            assertThat(columnExists(connection, "interviews", "round_number")).isTrue();
+            assertThat(columnExists(connection, "interviews", "round_type")).isTrue();
+            assertThat(columnExists(connection, "interview_questions", "question_text")).isTrue();
+            assertThat(columnExists(connection, "interview_questions", "topic_id")).isTrue();
+            assertThat(columnExists(connection, "interview_feedback", "is_draft")).isTrue();
         }
     }
 
@@ -52,7 +60,7 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
                     versions.add(rs.getString("version"));
                 }
             }
-            assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8");
+            assertThat(versions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
         }
     }
 
