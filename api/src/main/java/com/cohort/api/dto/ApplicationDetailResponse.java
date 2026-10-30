@@ -39,5 +39,6 @@ public record ApplicationDetailResponse(
         Instant stageEnteredAt,
         Instant createdAt,
         Instant updatedAt,
-        List<ApplicationStatusHistoryResponse> history) {
+        List<ApplicationStatusHistoryResponse> history,
+        List<ApplicationInterviewSummary> interviews) {
 }
