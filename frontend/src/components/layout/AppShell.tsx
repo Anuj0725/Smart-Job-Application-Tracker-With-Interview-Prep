@@ -5,6 +5,7 @@ import { BrandGlyph } from '@/components/brand/BrandMark'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { CommandPalette } from '@/components/layout/CommandPalette'
 import { ShortcutsDialog } from '@/components/layout/ShortcutsDialog'
 import { useShortcuts, type ShortcutAction } from '@/hooks/use-shortcuts'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
@@ -21,6 +22,7 @@ function prefersExpandedSidebar(): boolean {
 export function AppShell() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   useShortcuts((action: ShortcutAction) => {
@@ -30,6 +32,8 @@ export function AppShell() {
       const filter = document.getElementById('filter-q')
       if (filter) {
         filter.focus()
+      } else {
+        setPaletteOpen(true)
       }
     } else if (action === 'new-application') {
       navigate('/applications/new')
@@ -45,6 +49,17 @@ export function AppShell() {
   useEffect(() => {
     document.title = `${pageTitleFor(pathname)} · Cohort`
   }, [pathname])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault()
+        setPaletteOpen((open) => !open)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   return (
     <SidebarProvider defaultOpen={prefersExpandedSidebar()}>
@@ -66,6 +81,7 @@ export function AppShell() {
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
+              onClick={() => setPaletteOpen(true)}
               aria-label="Open command palette"
               className="inline-flex h-8 items-center gap-2 rounded-lg border bg-card/60 max-sm:h-10 max-sm:min-w-10 max-sm:justify-center px-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
             >
@@ -86,6 +102,7 @@ export function AppShell() {
         </main>
       </SidebarInset>
       <MobileNav />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </SidebarProvider>
   )

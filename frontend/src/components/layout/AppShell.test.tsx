@@ -68,6 +68,17 @@ describe('AppShell', () => {
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/login'))
   })
 
+  it('opens the command palette with the keyboard and navigates', async () => {
+    const user = userEvent.setup()
+    renderShell('/')
+
+    await user.keyboard('{Control>}k{/Control}')
+    await user.type(await screen.findByRole('combobox', { name: 'Search commands' }), 'resumes')
+    await user.keyboard('{Enter}')
+
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/resumes'))
+  })
+
   it('opens the shortcuts dialog with ? and lists the shortcuts', async () => {
     const user = userEvent.setup()
     renderShell('/')
