@@ -1,6 +1,12 @@
 package com.cohort.api.controller;
 
 import com.cohort.api.dto.ApplicationDetailResponse;
+import com.cohort.api.dto.StalledApplicationResponse;
+import com.cohort.api.service.application.StallDetectionService;
+import com.cohort.api.dto.ApplicationSearchCriteria;
+import com.cohort.api.entity.Application;
+import com.cohort.api.entity.ApplicationStatus;
+import java.time.LocalDate;
 import com.cohort.api.dto.ApplicationStatusHistoryResponse;
 import com.cohort.api.dto.ApplicationSummary;
 import com.cohort.api.dto.ChangeStatusRequest;
@@ -31,9 +37,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
+    private final StallDetectionService stallDetectionService;
 
-    public ApplicationController(ApplicationService applicationService) {
+    public ApplicationController(ApplicationService applicationService, StallDetectionService stallDetectionService) {
         this.applicationService = applicationService;
+        this.stallDetectionService = stallDetectionService;
     }
 
     @PostMapping
@@ -48,8 +56,18 @@ public class ApplicationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size,
             @RequestParam(defaultValue = "date_applied") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
-        return applicationService.list(userId(jwt), page, size, sort, direction);
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(required = false) ApplicationStatus stage,
+            @RequestParam(required = false) Application.Priority priority,
+            @RequestParam(name = "work_mode", required = false) Application.WorkMode workMode,
+            @RequestParam(required = false) String tag,
+            @RequestParam(name = "date_from", required = false) LocalDate dateFrom,
+            @RequestParam(name = "date_to", required = false) LocalDate dateTo,
+            @RequestParam(required = false) String q) {
+        ApplicationSearchCriteria criteria =
+                new ApplicationSearchCriteria(status, stage, priority, workMode, tag, dateFrom, dateTo, q);
+        return applicationService.list(userId(jwt), criteria, page, size, sort, direction);
     }
 
     @GetMapping("/{id}")
@@ -78,6 +96,13 @@ public class ApplicationController {
     @GetMapping("/{id}/history")
     public List<ApplicationStatusHistoryResponse> history(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         return applicationService.history(userId(jwt), id);
+    }
+
+    @GetMapping("/stalled")
+    public List<StalledApplicationResponse> stalled(@AuthenticationPrincipal Jwt jwt) {
+        return stallDetectionService.detectStalled(userId(jwt)).stream()
+                .map(StalledApplicationResponse::from)
+                .toList();
     }
 
     private UUID userId(Jwt jwt) {
