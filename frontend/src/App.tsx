@@ -5,6 +5,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { AppShell } from '@/components/layout/AppShell'
 import { ApplicationsListPage } from '@/pages/applications/ApplicationsListPage'
 import { ApplicationDetailPage } from '@/pages/applications/ApplicationDetailPage'
 import { ApplicationFormPage } from '@/pages/applications/ApplicationFormPage'
@@ -48,10 +49,12 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/applications" element={<ApplicationsListPage />} />
-        <Route path="/applications/new" element={<ApplicationFormPage />} />
-        <Route path="/applications/:id" element={<ApplicationDetailPage />} />
-        <Route path="/applications/:id/edit" element={<ApplicationFormPage />} />
+        <Route element={<AppShell />}>
+          <Route path="/applications" element={<ApplicationsListPage />} />
+          <Route path="/applications/new" element={<ApplicationFormPage />} />
+          <Route path="/applications/:id" element={<ApplicationDetailPage />} />
+          <Route path="/applications/:id/edit" element={<ApplicationFormPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
