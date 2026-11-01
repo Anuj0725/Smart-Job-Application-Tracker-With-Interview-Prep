@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { BriefcaseIcon, PlusIcon, SearchXIcon } from 'lucide-react'
+import { BriefcaseIcon, KanbanIcon, PlusIcon, SearchXIcon } from 'lucide-react'
 import { formatLabel } from '@/lib/labels'
 import { listApplications, type ApplicationSummary } from '@/lib/applications-api'
 import { Button } from '@/components/ui/button'
@@ -159,6 +159,12 @@ export function ApplicationsListPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/applications/board">
+              <KanbanIcon className="h-4 w-4" />
+              Board
+            </Link>
+          </Button>
           <Button asChild>
             <Link to="/applications/new">
               <PlusIcon className="h-4 w-4" />
