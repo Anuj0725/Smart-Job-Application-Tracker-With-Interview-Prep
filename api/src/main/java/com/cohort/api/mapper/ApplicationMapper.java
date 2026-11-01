@@ -6,6 +6,7 @@ import com.cohort.api.dto.ApplicationStatusHistoryResponse;
 import com.cohort.api.dto.ApplicationSummary;
 import com.cohort.api.dto.CompanySummary;
 import com.cohort.api.entity.Application;
+import com.cohort.api.entity.ApplicationStatus;
 import com.cohort.api.entity.ApplicationStatusHistory;
 import com.cohort.api.entity.Company;
 import com.cohort.api.entity.Interview;
