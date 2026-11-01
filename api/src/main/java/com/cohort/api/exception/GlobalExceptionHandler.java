@@ -144,5 +144,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiError.of("DUPLICATE_ROUND_NUMBER", ex.getMessage()));
     }
+
+    @ExceptionHandler(TopicRequiredException.class)
+    public ResponseEntity<ApiError> handleTopicRequired(TopicRequiredException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("VALIDATION_ERROR", "One or more fields are invalid.", Map.of("topicId", ex.getMessage())));
+    }
+
+    @ExceptionHandler(TopicNotFoundException.class)
+    public ResponseEntity<ApiError> handleTopicNotFound(TopicNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiError.of("TOPIC_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(QuestionNotFoundException.class)
+    public ResponseEntity<ApiError> handleQuestionNotFound(QuestionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiError.of("QUESTION_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PreparationTaskNotFoundException.class)
+    public ResponseEntity<ApiError> handlePreparationTaskNotFound(PreparationTaskNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("PREPARATION_TASK_NOT_FOUND", ex.getMessage()));
+    }
 }
 

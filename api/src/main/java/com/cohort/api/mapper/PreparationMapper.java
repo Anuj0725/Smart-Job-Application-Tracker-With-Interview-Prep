@@ -1,0 +1,68 @@
+package com.cohort.api.mapper;
+
+import com.cohort.api.dto.PracticeAttemptResponse;
+import com.cohort.api.dto.PreparationTaskResponse;
+import com.cohort.api.dto.QuestionResponse;
+import com.cohort.api.dto.TopicResponse;
+import com.cohort.api.entity.PracticeAttempt;
+import com.cohort.api.entity.PreparationTask;
+import com.cohort.api.entity.Question;
+import com.cohort.api.entity.Topic;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PreparationMapper {
+
+    public TopicResponse toResponse(Topic topic) {
+        return new TopicResponse(
+                topic.getId(),
+                topic.getName(),
+                topic.getSlug(),
+                topic.getCategory(),
+                topic.getDescription(),
+                topic.getDefaultDifficulty(),
+                topic.getTaxonomyVersion(),
+                topic.getCreatedAt());
+    }
+
+    public QuestionResponse toResponse(Question question, String topicName) {
+        return new QuestionResponse(
+                question.getId(),
+                question.getTopicId(),
+                topicName,
+                question.getQuestionText(),
+                question.getCategory(),
+                question.getDifficulty(),
+                question.isSystem(),
+                question.getSourceQuestionId(),
+                question.getCreatedAt(),
+                question.getUpdatedAt());
+    }
+
+    public PreparationTaskResponse toResponse(PreparationTask task, String topicName) {
+        return new PreparationTaskResponse(
+                task.getId(),
+                task.getTopicId(),
+                topicName,
+                task.getTitle(),
+                task.getDescription(),
+                task.getDueDate(),
+                task.getEstimatedEffortMinutes(),
+                task.getStatus(),
+                task.getCompletedAt(),
+                task.getCreatedAt(),
+                task.getUpdatedAt());
+    }
+
+    public PracticeAttemptResponse toResponse(PracticeAttempt attempt) {
+        return new PracticeAttemptResponse(
+                attempt.getId(),
+                attempt.getQuestionId(),
+                attempt.getStatus(),
+                attempt.getConfidence(),
+                attempt.getTimeTakenMinutes(),
+                attempt.getNotes(),
+                attempt.getAttemptedAt(),
+                attempt.getCreatedAt());
+    }
+}
