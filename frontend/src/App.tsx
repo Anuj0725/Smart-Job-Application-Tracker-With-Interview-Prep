@@ -10,6 +10,9 @@ import { ApplicationsListPage } from '@/pages/applications/ApplicationsListPage'
 import { ApplicationsBoardPage } from '@/pages/applications/ApplicationsBoardPage'
 import { ApplicationDetailPage } from '@/pages/applications/ApplicationDetailPage'
 import { ApplicationFormPage } from '@/pages/applications/ApplicationFormPage'
+import { ResumesListPage } from '@/pages/resumes/ResumesListPage'
+import { ResumeDetailPage } from '@/pages/resumes/ResumeDetailPage'
+import { ResumeFormPage } from '@/pages/resumes/ResumeFormPage'
 
 function HomePage() {
   return (
@@ -28,6 +31,9 @@ function HomePage() {
         </Link>
         <Link to="/applications" className="text-primary hover:underline">
           Applications
+        </Link>
+        <Link to="/resumes" className="text-primary hover:underline">
+          Resumes
         </Link>
         <Link to="/login" className="text-primary hover:underline">
           Log in
@@ -56,6 +62,10 @@ function App() {
           <Route path="/applications/board" element={<ApplicationsBoardPage />} />
           <Route path="/applications/:id" element={<ApplicationDetailPage />} />
           <Route path="/applications/:id/edit" element={<ApplicationFormPage />} />
+          <Route path="/resumes" element={<ResumesListPage />} />
+          <Route path="/resumes/new" element={<ResumeFormPage />} />
+          <Route path="/resumes/:id" element={<ResumeDetailPage />} />
+          <Route path="/resumes/:id/edit" element={<ResumeFormPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

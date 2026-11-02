@@ -74,29 +74,36 @@ interface ApiFetchOptions extends Omit<RequestInit, 'body' | 'headers'> {
   _retried?: boolean
 }
 
-export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+async function apiFetchRaw(path: string, options: ApiFetchOptions = {}): Promise<Response> {
   const { body, skipAuth, _retried, headers, ...rest } = options
   const accessToken = getAccessToken()
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(accessToken && !skipAuth ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers,
     },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: isFormData ? (body as FormData) : body !== undefined ? JSON.stringify(body) : undefined,
   })
 
   if (response.status === 401 && !skipAuth && !_retried) {
     const newAccessToken = await refreshAccessToken()
     if (newAccessToken) {
-      return apiFetch<T>(path, { ...options, _retried: true })
+      return apiFetchRaw(path, { ...options, _retried: true })
     }
     clearTokens()
     window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
     throw new ApiError(401, 'Your session has expired. Please log in again.', 'SESSION_EXPIRED')
   }
+
+  return response
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+  const response = await apiFetchRaw(path, options)
 
   if (response.status === 204) {
     return undefined as T
@@ -116,4 +123,20 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   }
 
   return data as T
+}
+
+export async function apiFetchBlob(path: string, options: ApiFetchOptions = {}): Promise<{ blob: Blob; filename: string | null }> {
+  const response = await apiFetchRaw(path, options)
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null)
+    const errorBody = (data as { error?: { code?: string; message?: string } })?.error
+    throw new ApiError(response.status, errorBody?.message ?? 'Something went wrong. Please try again.', errorBody?.code)
+  }
+
+  const disposition = response.headers.get('Content-Disposition')
+  const match = disposition?.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)"?/i)
+  const filename = match ? decodeURIComponent(match[1]!) : null
+
+  return { blob: await response.blob(), filename }
 }
