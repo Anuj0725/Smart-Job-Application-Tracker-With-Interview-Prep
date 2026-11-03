@@ -171,5 +171,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiError.of("PREPARATION_TASK_NOT_FOUND", ex.getMessage()));
     }
+
+    @ExceptionHandler(RecommendationNotFoundException.class)
+    public ResponseEntity<ApiError> handleRecommendationNotFound(RecommendationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RECOMMENDATION_NOT_FOUND", ex.getMessage()));
+    }
 }
 

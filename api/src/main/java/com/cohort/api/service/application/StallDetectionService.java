@@ -35,7 +35,12 @@ public class StallDetectionService {
     }
 
     public record StalledApplication(
-            UUID applicationId, String companyName, String jobTitle, ApplicationStatus currentStage, StallEvaluation evaluation) {
+            UUID applicationId,
+            String companyName,
+            String jobTitle,
+            ApplicationStatus currentStage,
+            StallEvaluation evaluation,
+            Instant stageEnteredAt) {
     }
 
     private final ApplicationRepository applicationRepository;
@@ -100,7 +105,8 @@ public class StallDetectionService {
                 application.getCompanyId(), id -> companyRepository.findByIdAndUserId(id, userId).orElse(null));
         String companyName = company == null ? "Unknown" : company.getName();
 
-        return new StalledApplication(application.getId(), companyName, application.getJobTitle(), stage, evaluation);
+        return new StalledApplication(
+                application.getId(), companyName, application.getJobTitle(), stage, evaluation, application.getStageEnteredAt());
     }
 
     private Map<ApplicationStatus, AnalyticsResult<StageDwellTimeMetric.DwellStats>> personalMedianByStage(
