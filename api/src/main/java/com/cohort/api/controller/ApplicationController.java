@@ -9,6 +9,7 @@ import com.cohort.api.entity.ApplicationStatus;
 import java.time.LocalDate;
 import com.cohort.api.dto.ApplicationStatusHistoryResponse;
 import com.cohort.api.dto.ApplicationSummary;
+import com.cohort.api.dto.AttachResumeRequest;
 import com.cohort.api.dto.ChangeStatusRequest;
 import com.cohort.api.dto.CreateApplicationRequest;
 import com.cohort.api.dto.PagedResponse;
@@ -85,6 +86,12 @@ public class ApplicationController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         applicationService.delete(userId(jwt), id);
+    }
+
+    @PostMapping("/{id}/resume")
+    public ApplicationDetailResponse attachResume(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @RequestBody AttachResumeRequest request) {
+        return applicationService.attachResume(userId(jwt), id, request.resumeId());
     }
 
     @PostMapping("/{id}/status")
