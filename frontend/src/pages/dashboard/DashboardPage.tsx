@@ -2,9 +2,12 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, PlusIcon } from 'lucide-react'
-import { format, isToday, isTomorrow, parseISO } from 'date-fns'
-import { listApplications } from '@/lib/applications-api'
+import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns'
+import { listApplications, listStalledApplications } from '@/lib/applications-api'
 import { listInterviews, type InterviewSummary } from '@/lib/interviews-api'
+import { listPreparationTasks } from '@/lib/prep-api'
+import { buildActionQueue } from '@/lib/action-queue'
+import { summariseActivity, type ActivitySummary } from '@/lib/activity'
 import { formatLabel } from '@/lib/labels'
 import { ErrorState } from '@/components/shared/QueryStates'
 import { Button } from '@/components/ui/button'
@@ -14,7 +17,11 @@ import { FlapText } from '@/components/board/FlapText'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { STATUS_LINE } from '@/lib/stage-lines'
 import type { ApplicationStatusValue, ApplicationSummary } from '@/lib/applications-api'
+import { ActionQueueList } from '@/components/dashboard/ActionQueueList'
+import { ProgressRing } from '@/components/dashboard/ProgressRing'
+import { cn } from '@/lib/utils'
 
+const TERMINAL_STATUSES = new Set(['REJECTED', 'WITHDRAWN', 'ACCEPTED', 'DECLINED'])
 const UPCOMING_LIMIT = 5
 const PIPELINE_STAGES: { status: ApplicationStatusValue; label: string }[] = [
   { status: 'SAVED', label: 'Saved' },
@@ -49,13 +56,50 @@ export function DashboardPage() {
     queryKey: ['dashboard-applications'],
     queryFn: () => listApplications({ size: 500 }),
   })
+  const stalledQuery = useQuery({ queryKey: ['dashboard-stalled'], queryFn: listStalledApplications })
   const upcomingInterviewsQuery = useQuery({
     queryKey: ['dashboard-upcoming-interviews'],
     queryFn: () => listInterviews({ upcoming: true, size: 50, sort: 'scheduled_at', direction: 'asc' }),
   })
+  const pastInterviewsQuery = useQuery({
+    queryKey: ['dashboard-past-interviews'],
+    queryFn: () => listInterviews({ upcoming: false, size: 200 }),
+  })
+  const tasksQuery = useQuery({ queryKey: ['dashboard-tasks'], queryFn: listPreparationTasks })
+
+  const isLoading =
+    applicationsQuery.isLoading ||
+    stalledQuery.isLoading ||
+    upcomingInterviewsQuery.isLoading ||
+    pastInterviewsQuery.isLoading ||
+    tasksQuery.isLoading
+
+  const hasError =
+    applicationsQuery.isError ||
+    stalledQuery.isError ||
+    upcomingInterviewsQuery.isError ||
+    pastInterviewsQuery.isError ||
+    tasksQuery.isError
 
   const applications = applicationsQuery.data?.items ?? []
   const upcomingInterviews = upcomingInterviewsQuery.data?.items ?? []
+  const pastInterviews = pastInterviewsQuery.data?.items ?? []
+  const tasks = tasksQuery.data ?? []
+
+  const missingDebriefs = pastInterviews.filter((interview) => !interview.has_feedback && interview.scheduled_at !== null)
+  const dueTasks = tasks.filter((task) => task.status === 'open' && task.due_date !== null && isPast(parseISO(task.due_date)))
+
+  const actionQueue = buildActionQueue({
+    stalled: stalledQuery.data ?? [],
+    upcomingInterviews,
+    missingDebriefs,
+    dueTasks,
+  })
+
+  const activeApplications = applications.filter((application) => !application.archived && !TERMINAL_STATUSES.has(application.status))
+  const offers = applications.filter((application) => application.status === 'OFFER' || application.status === 'ACCEPTED').length
+  const completedTasks = tasks.filter((task) => task.status === 'completed').length
+  const activity = summariseActivity({ applications, interviews: pastInterviews, tasks })
 
   return (
     <div className="space-y-8">
@@ -86,20 +130,73 @@ export function DashboardPage() {
         )}
       </section>
 
-      <section aria-labelledby="interviews-heading" className="min-w-0">
-        <div className="flex items-center justify-between gap-3 rounded-t-md bg-brand px-4 py-2.5 text-brand-foreground">
-          <h3 id="interviews-heading" className="text-display text-2xl">
-            Next interviews
-          </h3>
-          <Link to="/interviews" className="board-label inline-flex items-center gap-1 hover:underline hover:decoration-signal hover:decoration-2 hover:underline-offset-4">
-            All interviews
-            <ArrowRightIcon aria-hidden className="size-3.5" />
-          </Link>
-        </div>
-        <div className="rounded-b-md border border-t-0 bg-card">
-          {upcomingInterviewsQuery.isLoading && <Skeleton className="h-48 w-full" />}
-          {upcomingInterviewsQuery.data && <UpcomingInterviews interviews={upcomingInterviews.slice(0, UPCOMING_LIMIT)} />}
-        </div>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <section aria-labelledby="interviews-heading" className="min-w-0">
+          <div className="flex items-center justify-between gap-3 rounded-t-md bg-brand px-4 py-2.5 text-brand-foreground">
+            <h3 id="interviews-heading" className="text-display text-2xl">
+              Next interviews
+            </h3>
+            <Link to="/interviews" className="board-label inline-flex items-center gap-1 hover:underline hover:decoration-signal hover:decoration-2 hover:underline-offset-4">
+              All interviews
+              <ArrowRightIcon aria-hidden className="size-3.5" />
+            </Link>
+          </div>
+          <div className="rounded-b-md border border-t-0 bg-card">
+            {upcomingInterviewsQuery.isLoading && <Skeleton className="h-48 w-full" />}
+            {upcomingInterviewsQuery.data && <UpcomingInterviews interviews={upcomingInterviews.slice(0, UPCOMING_LIMIT)} />}
+          </div>
+        </section>
+
+        <section aria-labelledby="queue-heading" className="min-w-0 space-y-3">
+          <BoardHeading id="queue-heading">Action queue</BoardHeading>
+          {isLoading && <Skeleton className="h-48 w-full" data-testid="action-queue-loading" />}
+          {!isLoading && hasError && <ErrorState title="Could not load data." description="Try again in a moment." />}
+          {!isLoading && !hasError && <ActionQueueList items={actionQueue} />}
+        </section>
+      </div>
+
+      <section aria-label="Progress" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <MetricCard title="Prep tasks" loading={tasksQuery.isLoading}>
+          <div className="flex items-center gap-4">
+            <ProgressRing value={completedTasks} max={tasks.length} label="Prep tasks completed" size={72} stroke={8} />
+            <div className="min-w-0">
+              <p className="flex items-baseline gap-1.5">
+                <FlapText value={completedTasks} className="text-display text-5xl" />
+                <span className="text-sm text-muted-foreground">of {tasks.length} done</span>
+              </p>
+              {tasks.length === 0 ? (
+                <Link to="/prep" className="text-xs font-semibold underline decoration-signal decoration-2 underline-offset-4">
+                  Add your first prep task
+                </Link>
+              ) : (
+                <p className="text-xs text-muted-foreground">{dueTasks.length} overdue</p>
+              )}
+            </div>
+          </div>
+        </MetricCard>
+
+        <MetricCard title="Activity, last 14 days" loading={isLoading}>
+          <ActivityStrip activity={activity} />
+        </MetricCard>
+
+        <MetricCard title="Still in play" loading={applicationsQuery.isLoading}>
+          <p className="flex items-baseline gap-2">
+            <FlapText value={activeApplications.length} className="text-display text-5xl" />
+            <span className="text-sm text-muted-foreground">active applications</span>
+          </p>
+          <p className="mt-2 text-sm">
+            {offers > 0 ? (
+              <span className="font-semibold">
+                {offers} {offers === 1 ? 'offer' : 'offers'} on the table
+              </span>
+            ) : (
+              <span className="text-muted-foreground">No offers yet</span>
+            )}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {upcomingInterviews[0]?.scheduled_at ? `Next interview ${relativeDay(upcomingInterviews[0].scheduled_at)}` : 'No interviews scheduled'}
+          </p>
+        </MetricCard>
       </section>
     </div>
   )
@@ -134,6 +231,44 @@ function relativeDay(iso: string): string {
   if (isToday(date)) return `today at ${format(date, 'HH:mm')}`
   if (isTomorrow(date)) return `tomorrow at ${format(date, 'HH:mm')}`
   return format(date, 'EEE d MMM')
+}
+
+function MetricCard({ title, loading, children }: { title: string; loading: boolean; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-4 rounded-md border border-t-[3px] border-t-rule bg-card p-4 sm:p-5">
+      <h3 className="board-label text-muted-foreground">{title}</h3>
+      <div className="flex flex-1 flex-col justify-center">{loading ? <Skeleton className="h-16 w-full" /> : children}</div>
+    </div>
+  )
+}
+
+function ActivityStrip({ activity }: { activity: ActivitySummary }) {
+  const peak = Math.max(1, ...activity.days.map((day) => day.count))
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold">Active days in a row: {activity.streak}</p>
+      <p className="text-xs text-muted-foreground">
+        {activity.activeDays} active {activity.activeDays === 1 ? 'day' : 'days'} in the last 14
+      </p>
+      <div
+        role="img"
+        aria-label={`${activity.total} recorded actions over the last 14 days, on ${activity.activeDays} days`}
+        className="flex h-12 items-end gap-[3px]"
+      >
+        {activity.days.map((day) => (
+          <span
+            key={day.date}
+            title={`${day.date}: ${day.count}`}
+            className={cn('flex-1 rounded-[1px]', day.count > 0 ? 'bg-primary' : 'bg-muted')}
+            style={{ height: `${day.count > 0 ? 25 + (day.count / peak) * 75 : 10}%` }}
+          />
+        ))}
+      </div>
+      {activity.streak === 0 && (
+        <p className="text-xs text-muted-foreground">Log an application or finish a prep task to start a streak.</p>
+      )}
+    </div>
+  )
 }
 
 function PanelLink({ to, children }: { to: string; children: ReactNode }) {
