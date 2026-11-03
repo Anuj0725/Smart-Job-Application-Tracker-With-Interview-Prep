@@ -101,13 +101,12 @@ function renderPage() {
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: '1', email: 'jane@example.com', display_name: 'Jane Doe', target_role: null, graduation_year: null, target_date: null, onboarded: true, timezone: null, fl_opt_in: false, fl_privacy_posture: 'balanced', created_at: '' },
+      user: { id: '1', email: 'jane@example.com', display_name: 'Jane Doe', target_role: null, graduation_year: null, timezone: null, fl_opt_in: false, fl_privacy_posture: 'balanced', created_at: '' },
       isLoading: false,
       isAuthenticated: true,
       sessionMessage: null,
       login: vi.fn(),
       register: vi.fn(),
-      confirmEmail: vi.fn(),
       logout: vi.fn(),
     })
     vi.mocked(listApplications).mockReset()
