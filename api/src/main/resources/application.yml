@@ -17,6 +17,10 @@ spring:
     hibernate:
       # Flyway owns the schema; Hibernate only ever checks it matches.
       ddl-auto: validate
+  flyway:
+    placeholders:
+      # Password for the cohort_fl role created in V19. Same env var as docker-compose.fl.yml.
+      flPassword: ${FL_POSTGRES_PASSWORD:change_me_too}
   servlet:
     multipart:
       max-file-size: 6MB
