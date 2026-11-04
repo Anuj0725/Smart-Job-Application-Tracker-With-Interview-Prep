@@ -56,3 +56,24 @@ app:
     rate-limit:
       max-requests: ${AI_RATE_LIMIT_MAX_REQUESTS:30}
       window-minutes: ${AI_RATE_LIMIT_WINDOW_MINUTES:60}
+  fl:
+    # fl-service base URL. docker-compose.fl.yml overrides it to http://fl-service:8000.
+    service-base-url: ${APP_FL_SERVICE_BASE_URL:http://localhost:8000}
+    connect-timeout-ms: ${APP_FL_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${APP_FL_READ_TIMEOUT_MS:3000}
+    export:
+      # US-58: feature export job. Every 6 hours.
+      cron: ${APP_FL_EXPORT_CRON:0 0 */6 * * *}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      flService:
+        # Small window so a few failures open the breaker quickly.
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        record-exceptions:
+          - com.cohort.api.service.fl.FlServiceUnavailableException
