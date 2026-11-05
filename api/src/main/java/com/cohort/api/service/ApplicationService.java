@@ -17,11 +17,13 @@ import com.cohort.api.entity.Company;
 import com.cohort.api.entity.Interview;
 import com.cohort.api.exception.ApplicationNotFoundException;
 import com.cohort.api.exception.InvalidStatusTransitionException;
+import com.cohort.api.exception.ResumeNotFoundException;
 import com.cohort.api.mapper.ApplicationMapper;
 import com.cohort.api.repository.ApplicationRepository;
 import com.cohort.api.repository.ApplicationStatusHistoryRepository;
 import com.cohort.api.repository.CompanyRepository;
 import com.cohort.api.repository.InterviewRepository;
+import com.cohort.api.repository.ResumeRepository;
 import com.cohort.api.service.application.state.ApplicationStatusStateRegistry;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +45,7 @@ public class ApplicationService {
     private final ApplicationStatusHistoryRepository historyRepository;
     private final ApplicationStatusStateRegistry stateRegistry;
     private final InterviewRepository interviewRepository;
+    private final ResumeRepository resumeRepository;
     private final ApplicationMapper mapper;
 
     public ApplicationService(
@@ -51,12 +54,14 @@ public class ApplicationService {
             ApplicationStatusHistoryRepository historyRepository,
             ApplicationStatusStateRegistry stateRegistry,
             InterviewRepository interviewRepository,
+            ResumeRepository resumeRepository,
             ApplicationMapper mapper) {
         this.applicationRepository = applicationRepository;
         this.companyRepository = companyRepository;
         this.historyRepository = historyRepository;
         this.stateRegistry = stateRegistry;
         this.interviewRepository = interviewRepository;
+        this.resumeRepository = resumeRepository;
         this.mapper = mapper;
     }
 
@@ -171,6 +176,20 @@ public class ApplicationService {
     public void delete(UUID userId, UUID applicationId) {
         requireOwned(userId, applicationId);
         applicationRepository.deleteByIdAndUserId(applicationId, userId);
+    }
+
+    @Transactional
+    public ApplicationDetailResponse attachResume(UUID userId, UUID applicationId, UUID resumeId) {
+        Application application = requireOwned(userId, applicationId);
+        if (resumeId != null) {
+            resumeRepository.findByIdAndUserId(resumeId, userId).orElseThrow(ResumeNotFoundException::new);
+        }
+        application.setResumeId(resumeId);
+
+        Company company = requireCompany(userId, application.getCompanyId());
+        List<ApplicationStatusHistory> history = historyRepository.findByApplicationIdOrderByChangedAtDesc(applicationId);
+        List<Interview> interviews = interviewRepository.findAllByUserIdAndApplicationIdOrderByRoundNumberAsc(userId, applicationId);
+        return mapper.toDetail(application, company, history, interviews);
     }
 
     @Transactional
