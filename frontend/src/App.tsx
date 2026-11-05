@@ -12,6 +12,10 @@ import { ApplicationFormPage } from '@/pages/applications/ApplicationFormPage'
 import { ResumesListPage } from '@/pages/resumes/ResumesListPage'
 import { ResumeDetailPage } from '@/pages/resumes/ResumeDetailPage'
 import { ResumeFormPage } from '@/pages/resumes/ResumeFormPage'
+import { InterviewsListPage } from '@/pages/interviews/InterviewsListPage'
+import { InterviewDetailPage } from '@/pages/interviews/InterviewDetailPage'
+import { InterviewFormPage } from '@/pages/interviews/InterviewFormPage'
+import { InterviewDebriefPage } from '@/pages/interviews/InterviewDebriefPage'
 
 function App() {
   return (
@@ -30,6 +34,11 @@ function App() {
           <Route path="/resumes/new" element={<ResumeFormPage />} />
           <Route path="/resumes/:id" element={<ResumeDetailPage />} />
           <Route path="/resumes/:id/edit" element={<ResumeFormPage />} />
+          <Route path="/interviews" element={<InterviewsListPage />} />
+          <Route path="/interviews/new" element={<InterviewFormPage />} />
+          <Route path="/interviews/:id" element={<InterviewDetailPage />} />
+          <Route path="/interviews/:id/edit" element={<InterviewFormPage />} />
+          <Route path="/interviews/:id/debrief" element={<InterviewDebriefPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
