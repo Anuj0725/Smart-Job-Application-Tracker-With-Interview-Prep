@@ -63,6 +63,21 @@
       <version>1.80</version>
     </dependency>
     <dependency>
+      <!-- Circuit Breaker around FlowerServiceAdapter (docs/architecture.md).
+           Used programmatically (CircuitBreakerRegistry +
+           CircuitBreaker.decorateSupplier) rather than through annotations,
+           so the fallback to local-only ranking sits in one place and can be
+           tested without Spring AOP self-invocation proxying. -->
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-circuitbreaker</artifactId>
+      <version>2.4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-spring-boot3</artifactId>
+      <version>2.4.0</version>
+    </dependency>
+    <dependency>
       <!-- OpenPDF is the LGPL/MPL-licensed fork of iText 4, so it carries no
            AGPL obligations, and needs no native dependencies. -->
       <groupId>com.github.librepdf</groupId>

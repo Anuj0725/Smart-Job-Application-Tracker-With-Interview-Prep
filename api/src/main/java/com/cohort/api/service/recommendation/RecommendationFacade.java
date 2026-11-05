@@ -12,6 +12,9 @@ import com.cohort.api.repository.RecommendationEvidenceRepository;
 import com.cohort.api.repository.RecommendationRepository;
 import com.cohort.api.repository.TopicRepository;
 import com.cohort.api.service.application.StallDetectionService;
+import com.cohort.api.service.fl.FederatedLiftCalculator;
+import com.cohort.api.service.fl.FlCircuitBreakerGateway;
+import com.cohort.api.service.fl.FlModelInfo;
 import com.cohort.api.service.recommendation.generator.BaselineGenerator;
 import com.cohort.api.service.recommendation.generator.DecayGenerator;
 import com.cohort.api.service.recommendation.generator.RecommendationGenerator;
@@ -25,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -56,6 +60,8 @@ public class RecommendationFacade {
     private final RecommendationEvidenceRepository evidenceRepository;
     private final PreparationTaskRepository preparationTaskRepository;
     private final RecommendationMapper mapper;
+    private final FlCircuitBreakerGateway flGateway;
+    private final FederatedLiftCalculator liftCalculator;
 
     public RecommendationFacade(
             TopicMasteryLoader topicMasteryLoader,
@@ -72,7 +78,9 @@ public class RecommendationFacade {
             RecommendationRepository recommendationRepository,
             RecommendationEvidenceRepository evidenceRepository,
             PreparationTaskRepository preparationTaskRepository,
-            RecommendationMapper mapper) {
+            RecommendationMapper mapper,
+            FlCircuitBreakerGateway flGateway,
+            FederatedLiftCalculator liftCalculator) {
         this.topicMasteryLoader = topicMasteryLoader;
         this.topicRepository = topicRepository;
         this.stallDetectionService = stallDetectionService;
@@ -86,6 +94,8 @@ public class RecommendationFacade {
         this.evidenceRepository = evidenceRepository;
         this.preparationTaskRepository = preparationTaskRepository;
         this.mapper = mapper;
+        this.flGateway = flGateway;
+        this.liftCalculator = liftCalculator;
     }
 
     @Transactional
@@ -107,20 +117,58 @@ public class RecommendationFacade {
 
         List<RecommendationScorer.ScoredCandidate> localRanked = rankAndCap(candidates, asOf);
 
-        boolean federatedApplied = false;
-        int rankDelta = 0;
+        Optional<FlModelInfo> model = federated ? flGateway.fetchCurrentModelSafely() : Optional.empty();
+        boolean federatedApplied = model.isPresent();
 
-        List<RecommendationCard> cards = localRanked.stream()
-                .map(scoredCandidate -> RecommendationCard.builder()
-                        .forUser(userId)
-                        .withCandidate(scoredCandidate.candidate())
-                        .withTierAndScore(scoredCandidate.tier(), scoredCandidate.score())
-                        .withCopy(templateRegistry.render(scoredCandidate.candidate(), scoredCandidate.tier()))
-                        .build())
+        List<IndexedScoredCandidate> finalOrder = applyFederatedLift(localRanked, model, federatedApplied);
+
+        List<CardWithLift> cards = finalOrder.stream()
+                .map(indexed -> new CardWithLift(
+                        RecommendationCard.builder()
+                                .forUser(userId)
+                                .withCandidate(indexed.scored().candidate())
+                                .withTierAndScore(indexed.scored().tier(), indexed.scored().score())
+                                .withCopy(templateRegistry.render(indexed.scored().candidate(), indexed.scored().tier()))
+                                .build(),
+                        indexed.rankDelta()))
                 .toList();
 
         recommendationRepository.deleteAllByUserIdAndStatus(userId, RecommendationStatus.active);
-        return cards.stream().map(card -> persistAndRespond(card, federatedApplied, rankDelta)).toList();
+        return cards.stream().map(cwl -> persistAndRespond(cwl.card(), federatedApplied, cwl.rankDelta())).toList();
+    }
+
+    private List<IndexedScoredCandidate> applyFederatedLift(
+            List<RecommendationScorer.ScoredCandidate> localRanked, Optional<FlModelInfo> model, boolean federatedApplied) {
+        if (!federatedApplied) {
+            return java.util.stream.IntStream.range(0, localRanked.size())
+                    .mapToObj(i -> new IndexedScoredCandidate(localRanked.get(i), 0))
+                    .toList();
+        }
+        FlModelInfo currentModel = model.orElseThrow();
+        List<ScoredWithMultiplier> withMultiplier = java.util.stream.IntStream.range(0, localRanked.size())
+                .mapToObj(i -> new ScoredWithMultiplier(
+                        i, localRanked.get(i),
+                        liftCalculator.adjustmentMultiplier(currentModel, localRanked.get(i).candidate().severity())))
+                .toList();
+        List<ScoredWithMultiplier> federatedOrder = withMultiplier.stream()
+                .sorted(Comparator.comparingDouble((ScoredWithMultiplier s) -> s.scored().score() * s.multiplier()).reversed())
+                .toList();
+        return java.util.stream.IntStream.range(0, federatedOrder.size())
+                .mapToObj(federatedIndex -> {
+                    ScoredWithMultiplier entry = federatedOrder.get(federatedIndex);
+                    int rankDelta = entry.localIndex() - federatedIndex;
+                    return new IndexedScoredCandidate(entry.scored(), rankDelta);
+                })
+                .toList();
+    }
+
+    private record ScoredWithMultiplier(int localIndex, RecommendationScorer.ScoredCandidate scored, double multiplier) {
+    }
+
+    private record IndexedScoredCandidate(RecommendationScorer.ScoredCandidate scored, int rankDelta) {
+    }
+
+    private record CardWithLift(RecommendationCard card, int rankDelta) {
     }
 
     @Transactional(readOnly = true)

@@ -1,0 +1,23 @@
+# Additive layer on docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.fl.yml up -d
+# fl-service gets no main-database credentials; scripts/verify-fl-db-isolation.sh checks this.
+services:
+  api:
+    environment:
+      # Container name, not the service name: `docker compose run fl-service` would share the service alias.
+      APP_FL_SERVICE_BASE_URL: http://cohort-fl-service:8000
+
+  fl-service:
+    build:
+      context: ./fl-service
+    container_name: cohort-fl-service
+    restart: unless-stopped
+    environment:
+      FL_MIN_COHORT_SIZE: ${FL_MIN_COHORT_SIZE:-3}
+      FL_CLIPPING_NORM: ${FL_CLIPPING_NORM:-1.0}
+      FL_NOISE_MULTIPLIER: ${FL_NOISE_MULTIPLIER:-1.0}
+      FL_POSTGRES_USER: ${FL_POSTGRES_USER:-cohort_fl}
+      FL_POSTGRES_PASSWORD: ${FL_POSTGRES_PASSWORD:-change_me_too}
+      FL_POSTGRES_SCHEMA: ${FL_POSTGRES_SCHEMA:-fl}
+    ports:
+      - "${FL_SERVICE_PORT:-8000}:8000"

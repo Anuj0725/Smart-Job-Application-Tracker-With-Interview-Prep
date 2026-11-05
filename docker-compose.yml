@@ -15,6 +15,25 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: ./api
+    container_name: cohort-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+  # fl-service lives in docker-compose.fl.yml:
+  #   docker compose -f docker-compose.yml -f docker-compose.fl.yml up -d
+
 volumes:
   cohort_db_data:
     name: cohort_db_data
