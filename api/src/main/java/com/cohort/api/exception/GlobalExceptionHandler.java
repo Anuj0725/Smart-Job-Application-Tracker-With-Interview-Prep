@@ -177,5 +177,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiError.of("RECOMMENDATION_NOT_FOUND", ex.getMessage()));
     }
+
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotificationNotFound(NotificationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("NOTIFICATION_NOT_FOUND", ex.getMessage()));
+    }
 }
 
