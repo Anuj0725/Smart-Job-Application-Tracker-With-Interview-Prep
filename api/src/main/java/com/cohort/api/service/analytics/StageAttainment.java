@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.Set;
 
 public final class StageAttainment {
-
     private static final Set<ApplicationStatus> PIPELINE_STAGES = EnumSet.of(
-            ApplicationStatus.SAVED, ApplicationStatus.APPLIED, ApplicationStatus.OA,
-            ApplicationStatus.INTERVIEW, ApplicationStatus.FINAL_ROUND, ApplicationStatus.OFFER);
+            ApplicationStatus.SAVED,
+            ApplicationStatus.APPLIED,
+            ApplicationStatus.OA,
+            ApplicationStatus.INTERVIEW,
+            ApplicationStatus.FINAL_ROUND,
+            ApplicationStatus.OFFER);
 
     private StageAttainment() {
     }

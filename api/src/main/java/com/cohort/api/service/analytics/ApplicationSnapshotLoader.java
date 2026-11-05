@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ApplicationSnapshotLoader {
-
     private final ApplicationRepository applicationRepository;
     private final ApplicationStatusHistoryRepository historyRepository;
 

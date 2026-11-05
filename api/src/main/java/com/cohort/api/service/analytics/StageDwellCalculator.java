@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 public final class StageDwellCalculator {
+    private StageDwellCalculator() {
+    }
 
-    private StageDwellCalculator() {}
-
-    public record DwellData(Map<ApplicationStatus, List<Double>> completedDurationDays, Map<ApplicationStatus, Long> censoredCounts) {}
+    public record DwellData(Map<ApplicationStatus, List<Double>> completedDurationDays, Map<ApplicationStatus, Long> censoredCounts) {
+    }
 
     public static DwellData compute(List<ApplicationSnapshot> snapshots) {
         Map<ApplicationStatus, List<Double>> completed = new EnumMap<>(ApplicationStatus.class);
@@ -27,7 +28,7 @@ public final class StageDwellCalculator {
             for (int i = 0; i < ordered.size() - 1; i++) {
                 ApplicationStatus stage = ordered.get(i).getToStatus();
                 if (!stage.isTerminal()) {
-                    double days = Duration.between(ordered.get(i).getChangedAt(), ordered.get(i + 1).getChangedAt()).toMillis() / 86_400_000.0;
+                    double days = daysBetween(ordered.get(i).getChangedAt(), ordered.get(i + 1).getChangedAt());
                     completed.computeIfAbsent(stage, s -> new ArrayList<>()).add(days);
                 }
             }
@@ -38,5 +39,9 @@ public final class StageDwellCalculator {
             }
         }
         return new DwellData(completed, censored);
+    }
+
+    private static double daysBetween(java.time.Instant from, java.time.Instant to) {
+        return Duration.between(from, to).toMillis() / 86_400_000.0;
     }
 }
