@@ -39,6 +39,11 @@ app:
       window-minutes: 15
   resume-storage:
     base-dir: ${RESUME_STORAGE_DIR:./data/resumes}
+  notifications:
+    channels: ${APP_NOTIFICATION_CHANNELS:in_app}
+    detection:
+      initial-delay: ${APP_NOTIFICATION_DETECTION_INITIAL_DELAY:PT1M}
+      interval: ${APP_NOTIFICATION_DETECTION_INTERVAL:PT15M}
 
   ai:
     # US-102: local Ollama by default. Gemini is used only when
