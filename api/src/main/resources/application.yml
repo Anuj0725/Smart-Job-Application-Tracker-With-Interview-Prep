@@ -38,7 +38,17 @@ app:
       max-attempts: 10
       window-minutes: 15
   resume-storage:
+    # Local disk. Swap FileStorageStrategy for S3.
     base-dir: ${RESUME_STORAGE_DIR:./data/resumes}
+  report-storage:
+    # US-80: generated PDF/CSV exports, in a separate root from resumes.
+    base-dir: ${REPORT_STORAGE_DIR:./data/reports}
+  reports:
+    # FR-104: how long an export stays downloadable before ReportExpiryJob deletes it.
+    ttl: ${APP_REPORTS_TTL:P7D}
+    # Oldest exports beyond this many per user are pruned on each new export.
+    max-per-user: ${APP_REPORTS_MAX_PER_USER:20}
+    cleanup-interval: ${APP_REPORTS_CLEANUP_INTERVAL:PT1H}
   notifications:
     channels: ${APP_NOTIFICATION_CHANNELS:in_app}
     detection:
