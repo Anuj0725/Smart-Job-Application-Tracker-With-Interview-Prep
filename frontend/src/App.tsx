@@ -16,6 +16,7 @@ import { InterviewsListPage } from '@/pages/interviews/InterviewsListPage'
 import { InterviewDetailPage } from '@/pages/interviews/InterviewDetailPage'
 import { InterviewFormPage } from '@/pages/interviews/InterviewFormPage'
 import { InterviewDebriefPage } from '@/pages/interviews/InterviewDebriefPage'
+import { AnalyticsPage } from '@/pages/analytics/AnalyticsPage'
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/interviews/:id" element={<InterviewDetailPage />} />
           <Route path="/interviews/:id/edit" element={<InterviewFormPage />} />
           <Route path="/interviews/:id/debrief" element={<InterviewDebriefPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
