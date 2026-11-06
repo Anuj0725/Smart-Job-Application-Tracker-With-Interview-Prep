@@ -69,6 +69,9 @@ app:
     export:
       # US-58: feature export job. Every 6 hours.
       cron: ${APP_FL_EXPORT_CRON:0 0 */6 * * *}
+    round:
+      # US-61/US-63: 30 minutes after the export, so rounds use fresh features.
+      cron: ${APP_FL_ROUND_CRON:0 30 */6 * * *}
 
 resilience4j:
   circuitbreaker:
