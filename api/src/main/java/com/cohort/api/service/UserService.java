@@ -21,13 +21,16 @@ public class UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicyValidator passwordPolicyValidator;
+    private final AccountRecoveryService accountRecoveryService;
 
     public UserService(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository,
-                       PasswordEncoder passwordEncoder, PasswordPolicyValidator passwordPolicyValidator) {
+                       PasswordEncoder passwordEncoder, PasswordPolicyValidator passwordPolicyValidator,
+                       AccountRecoveryService accountRecoveryService) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicyValidator = passwordPolicyValidator;
+        this.accountRecoveryService = accountRecoveryService;
     }
 
     @Transactional(readOnly = true)
@@ -44,12 +47,16 @@ public class UserService {
                 throw new EmailAlreadyInUseException();
             }
             user.setEmail(request.email());
+            accountRecoveryService.sendVerification(user);
         }
         if (request.displayName() != null) {
             user.setDisplayName(request.displayName());
         }
         if (request.targetRole() != null) {
             user.setTargetRole(request.targetRole());
+        }
+        if (request.targetDate() != null) {
+            user.setTargetDate(request.targetDate());
         }
         if (request.graduationYear() != null) {
             user.setGraduationYear(request.graduationYear());

@@ -9,12 +9,15 @@ import com.cohort.api.dto.UserSummary;
 import com.cohort.api.entity.RefreshToken;
 import com.cohort.api.entity.User;
 import com.cohort.api.exception.EmailAlreadyRegisteredException;
+import com.cohort.api.exception.EmailNotVerifiedException;
+import com.cohort.api.exception.InvalidAuthTokenException;
 import com.cohort.api.exception.InvalidCredentialsException;
 import com.cohort.api.repository.UserRepository;
 import com.cohort.api.security.LoginRateLimiter;
 import com.cohort.api.security.PasswordPolicyValidator;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ public class AuthService {
     private final PasswordPolicyValidator passwordPolicyValidator;
     private final TokenService tokenService;
     private final LoginRateLimiter loginRateLimiter;
+    private final AccountRecoveryService accountRecoveryService;
+    private final boolean emailVerificationRequired;
 
     /**
      * Computed once at startup so a login attempt against a non-existent
@@ -39,12 +44,15 @@ public class AuthService {
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                         PasswordPolicyValidator passwordPolicyValidator, TokenService tokenService,
-                        LoginRateLimiter loginRateLimiter) {
+                        LoginRateLimiter loginRateLimiter, AccountRecoveryService accountRecoveryService,
+                        @Value("${app.auth.email-verification-required}") boolean emailVerificationRequired) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicyValidator = passwordPolicyValidator;
         this.tokenService = tokenService;
         this.loginRateLimiter = loginRateLimiter;
+        this.accountRecoveryService = accountRecoveryService;
+        this.emailVerificationRequired = emailVerificationRequired;
         this.dummyHashForTimingSafety = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
@@ -61,6 +69,10 @@ public class AuthService {
             user = userRepository.save(new User(request.email(), passwordHash, request.displayName()));
         } catch (DataIntegrityViolationException raceOnUniqueEmail) {
             throw new EmailAlreadyRegisteredException();
+        }
+        accountRecoveryService.sendVerification(user);
+        if (emailVerificationRequired) {
+            return AuthResponse.awaitingVerification(UserSummary.from(user));
         }
         return issueAuthResponse(user);
     }
@@ -83,7 +95,17 @@ public class AuthService {
         }
 
         loginRateLimiter.recordSuccess(request.email());
-        return issueAuthResponse(maybeUser.get());
+        User user = maybeUser.get();
+        // Checked after the password, so this never reveals whether an address is registered.
+        if (emailVerificationRequired && !user.isEmailVerified()) {
+            throw new EmailNotVerifiedException();
+        }
+        return issueAuthResponse(user);
+    }
+
+    @Transactional(noRollbackFor = InvalidAuthTokenException.class)
+    public AuthResponse confirmEmail(String token) {
+        return issueAuthResponse(accountRecoveryService.confirmVerification(token));
     }
 
     @Transactional
@@ -101,6 +123,6 @@ public class AuthService {
     private AuthResponse issueAuthResponse(User user) {
         String accessToken = tokenService.issueAccessToken(user);
         String refreshToken = tokenService.issueRefreshToken(user);
-        return new AuthResponse(UserSummary.from(user), accessToken, refreshToken);
+        return AuthResponse.signedIn(UserSummary.from(user), accessToken, refreshToken);
     }
 }

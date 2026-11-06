@@ -30,6 +30,7 @@ class AuthServiceTest {
     private PasswordPolicyValidator passwordPolicyValidator;
     private TokenService tokenService;
     private LoginRateLimiter loginRateLimiter;
+    private AccountRecoveryService accountRecoveryService;
     private AuthService authService;
 
     @BeforeEach
@@ -39,13 +40,15 @@ class AuthServiceTest {
         passwordPolicyValidator = mock(PasswordPolicyValidator.class);
         tokenService = mock(TokenService.class);
         loginRateLimiter = mock(LoginRateLimiter.class);
+        accountRecoveryService = mock(AccountRecoveryService.class);
 
         when(passwordEncoder.encode(anyString())).thenReturn("hashed");
         when(tokenService.issueAccessToken(any())).thenReturn("access-token");
         when(tokenService.issueRefreshToken(any())).thenReturn("refresh-token");
 
         authService = new AuthService(
-                userRepository, passwordEncoder, passwordPolicyValidator, tokenService, loginRateLimiter);
+                userRepository, passwordEncoder, passwordPolicyValidator, tokenService, loginRateLimiter,
+                accountRecoveryService, false);
     }
 
     @Test
