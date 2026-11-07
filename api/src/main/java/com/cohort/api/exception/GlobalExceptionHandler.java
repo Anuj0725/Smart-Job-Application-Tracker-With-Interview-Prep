@@ -132,6 +132,21 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("RESUME_FILE_NOT_FOUND", ex.getMessage()));
     }
 
+    @ExceptionHandler(ReportExportNotFoundException.class)
+    public ResponseEntity<ApiError> handleReportExportNotFound(ReportExportNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiError.of("REPORT_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReportExportExpiredException.class)
+    public ResponseEntity<ApiError> handleReportExportExpired(ReportExportExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.GONE).body(ApiError.of("REPORT_EXPIRED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidReportRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidReportRequest(InvalidReportRequestException ex) {
+        return ResponseEntity.badRequest().body(ApiError.of("VALIDATION_ERROR", ex.getMessage(), ex.getFieldErrors()));
+    }
+
     @ExceptionHandler(InterviewNotFoundException.class)
     public ResponseEntity<ApiError> handleInterviewNotFound(InterviewNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

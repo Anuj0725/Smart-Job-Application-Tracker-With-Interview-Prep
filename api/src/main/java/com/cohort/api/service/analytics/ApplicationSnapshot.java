@@ -12,12 +12,8 @@ public record ApplicationSnapshot(
         ApplicationStatus currentStage,
         Instant stageEnteredAt,
         List<ApplicationStatusHistory> history) {
-
-    public boolean isResolved() {
-        return status.isTerminal();
-    }
-
     public boolean isResolvedAtStage(ApplicationStatus stage) {
-        return StageAttainment.reached(history, stage) && !(currentStage == stage && !status.isTerminal());
+        boolean stillOpenAtThisStage = currentStage == stage && !status.isTerminal();
+        return StageAttainment.reached(history, stage) && !stillOpenAtThisStage;
     }
 }
