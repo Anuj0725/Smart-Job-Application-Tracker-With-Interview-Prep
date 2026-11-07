@@ -46,6 +46,14 @@ app:
     access-token-ttl-minutes: ${JWT_ACCESS_TOKEN_TTL_MINUTES:15}
     refresh-token-ttl-days: ${JWT_REFRESH_TOKEN_TTL_DAYS:30}
   frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
+  oauth:
+    # A provider is offered only when both its id and secret are set.
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    github:
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
   mail:
     # log writes emails to the server log; smtp sends them through spring.mail.
     sender: ${APP_MAIL_SENDER:log}
