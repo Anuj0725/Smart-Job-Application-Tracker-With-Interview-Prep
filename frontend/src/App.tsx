@@ -21,6 +21,7 @@ import { RecommendationsPage } from '@/pages/recommendations/RecommendationsPage
 import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
 import { PrepPage } from '@/pages/prep/PrepPage'
 import { QuestionBankPage } from '@/pages/prep/QuestionBankPage'
+import { MockInterviewPage } from '@/pages/prep/MockInterviewPage'
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/prep" element={<PrepPage />} />
           <Route path="/prep/questions" element={<QuestionBankPage />} />
+          <Route path="/prep/mock-interview" element={<MockInterviewPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
