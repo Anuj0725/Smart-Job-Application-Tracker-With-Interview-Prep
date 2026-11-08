@@ -30,6 +30,10 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             assertThat(tableExists(connection, "tags")).isTrue();
             assertThat(tableExists(connection, "application_tags")).isTrue();
             assertThat(columnExists(connection, "users", "email")).isTrue();
+            assertThat(columnExists(connection, "auth_tokens", "token_hash")).isTrue();
+            assertThat(columnExists(connection, "users", "email_verified_at")).isTrue();
+            assertThat(columnExists(connection, "users", "onboarded_at")).isTrue();
+            assertThat(columnExists(connection, "oauth_identities", "subject")).isTrue();
             assertThat(columnExists(connection, "refresh_tokens", "token_hash")).isTrue();
             assertThat(columnExists(connection, "companies", "normalized_name")).isTrue();
             assertThat(columnExists(connection, "applications", "current_stage")).isTrue();
@@ -82,7 +86,7 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             }
             assertThat(versions).containsExactly(
                     "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
-                    "12", "13", "14", "15", "16", "17", "18", "19", "20", "21");
+                    "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24");
         }
     }
 

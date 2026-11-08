@@ -3,6 +3,7 @@ package com.cohort.api;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -17,6 +18,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * test class itself, not on an inherited superclass.
  */
 @Testcontainers
+// Most suites register users and use them straight away; EmailVerificationIntegrationTest covers the required path.
+@TestPropertySource(properties = "app.auth.email-verification-required=false")
 public abstract class AbstractIntegrationTest {
 
     @TestConfiguration(proxyBeanMethods = false)

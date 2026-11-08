@@ -38,6 +38,21 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("INVALID_REFRESH_TOKEN", ex.getMessage()));
     }
 
+    @ExceptionHandler(InvalidAuthTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidAuthToken(InvalidAuthTokenException ex) {
+        return ResponseEntity.badRequest().body(ApiError.of("INVALID_TOKEN", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ApiError> handleEmailNotVerified(EmailNotVerifiedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiError.of("EMAIL_NOT_VERIFIED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MailDeliveryException.class)
+    public ResponseEntity<ApiError> handleMailDelivery(MailDeliveryException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ApiError.of("MAIL_UNAVAILABLE", ex.getMessage()));
+    }
+
     @ExceptionHandler(EmailAlreadyRegisteredException.class)
     public ResponseEntity<ApiError> handleEmailConflict(EmailAlreadyRegisteredException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

@@ -32,6 +32,15 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
+
+    @Column(name = "target_date")
+    private java.time.LocalDate targetDate;
+
+    @Column(name = "onboarded_at")
+    private Instant onboardedAt;
+
     @Column(name = "display_name")
     private String displayName;
 
@@ -88,6 +97,19 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+        this.emailVerifiedAt = null;
+    }
+
+    public Instant getEmailVerifiedAt() {
+        return emailVerifiedAt;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerifiedAt != null;
+    }
+
+    public void markEmailVerified() {
+        this.emailVerifiedAt = Instant.now();
     }
 
     public String getPasswordHash() {
@@ -104,6 +126,22 @@ public class User {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public java.time.LocalDate getTargetDate() {
+        return targetDate;
+    }
+
+    public void setTargetDate(java.time.LocalDate targetDate) {
+        this.targetDate = targetDate;
+    }
+
+    public Instant getOnboardedAt() {
+        return onboardedAt;
+    }
+
+    public void markOnboarded() {
+        this.onboardedAt = Instant.now();
     }
 
     public String getTargetRole() {

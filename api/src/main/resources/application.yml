@@ -21,6 +21,18 @@ spring:
     placeholders:
       # Password for the cohort_fl role created in V19. Same env var as docker-compose.fl.yml.
       flPassword: ${FL_POSTGRES_PASSWORD:change_me_too}
+  mail:
+    # Gmail SMTP with an app password by default; any SMTP provider works by changing these.
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   servlet:
     multipart:
       max-file-size: 6MB
@@ -33,7 +45,24 @@ app:
     secret: ${JWT_SECRET:dev-only-secret-change-me-before-any-real-use-00000}
     access-token-ttl-minutes: ${JWT_ACCESS_TOKEN_TTL_MINUTES:15}
     refresh-token-ttl-days: ${JWT_REFRESH_TOKEN_TTL_DAYS:30}
+  frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
+  oauth:
+    # A provider is offered only when both its id and secret are set.
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    github:
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+  mail:
+    # log writes emails to the server log; smtp sends them through spring.mail.
+    sender: ${APP_MAIL_SENDER:log}
+    from-name: Cohort
   auth:
+    # Password sign-in is refused until the email is confirmed.
+    email-verification-required: ${EMAIL_VERIFICATION_REQUIRED:true}
+    reset-token-ttl-minutes: 60
+    verification-token-ttl-hours: 24
     login-rate-limit:
       max-attempts: 10
       window-minutes: 15

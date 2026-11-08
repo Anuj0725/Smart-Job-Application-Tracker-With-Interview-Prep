@@ -9,5 +9,6 @@ public record UpdateProfileRequest(
         @Size(max = 120) String displayName,
         @Size(max = 120) String targetRole,
         Short graduationYear,
+        java.time.LocalDate targetDate,
         @Size(max = 60) String timezone) {
 }
