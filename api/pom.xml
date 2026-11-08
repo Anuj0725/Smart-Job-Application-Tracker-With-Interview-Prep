@@ -19,6 +19,9 @@
 
   <properties>
     <java.version>21</java.version>
+    <!-- The version Spring Boot manages (1.21.2) speaks Docker API 1.32, which current Docker
+         releases refuse. 1.21.4 negotiates the API version. -->
+    <testcontainers.version>1.21.4</testcontainers.version>
   </properties>
 
   <dependencies>

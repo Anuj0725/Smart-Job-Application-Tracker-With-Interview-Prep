@@ -9,6 +9,7 @@ import { CommandPalette } from '@/components/layout/CommandPalette'
 import { ShortcutsDialog } from '@/components/layout/ShortcutsDialog'
 import { useShortcuts, type ShortcutAction } from '@/hooks/use-shortcuts'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { breadcrumbsFor, pageTitleFor } from '@/lib/navigation'
@@ -93,6 +94,7 @@ export function AppShell() {
               </span>
             </button>
             <ThemeToggle className="hidden sm:inline-flex" />
+            <NotificationBell />
           </div>
         </header>
         <main id="main" tabIndex={-1} className="flex-1 px-4 pt-5 pb-24 sm:px-6 sm:pt-6 md:pb-8 outline-none lg:px-8">
