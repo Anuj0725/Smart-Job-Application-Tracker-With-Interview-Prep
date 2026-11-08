@@ -7,6 +7,8 @@ from app.client.privacy import DEFAULT_CLIP_NORM, add_gaussian_noise, clip_updat
 from app.common.parameters import PARAMETER_COUNT, flatten, zero_parameters
 from app.common.schema import FEATURE_COUNT
 from app.control.client_store import ClientFeatures
+from app.demo.synthetic import as_array, generate_synthetic_training_clients
+from app.server.evaluation import check_set_accuracy
 from app.server.model_registry import ModelRegistry
 from app.server.round_orchestrator import run_training_round
 from app.server.strategy import DEFAULT_MIN_COHORT
@@ -94,6 +96,23 @@ def test_clients_with_too_few_rated_rounds_sit_out_and_send_nothing() -> None:
     assert outcome.sat_out_count == 1
     assert outcome.cohort_size == DEFAULT_MIN_COHORT
     assert "new-user" not in {entry.client_id for entry in outcome.entries}
+
+
+def test_the_shared_model_gets_better_on_the_check_set_over_rounds() -> None:
+    clients = {
+        cid: ClientFeatures(schema_version=1, features=as_array(current), examples_x=x, examples_y=y)
+        for cid, (current, x, y) in generate_synthetic_training_clients(40, seed=7).items()
+    }
+    registry = _registry()
+    rng = np.random.default_rng(3)
+    starting_accuracy = check_set_accuracy(registry.current.parameters)
+
+    for round_number in range(1, 13):
+        run_training_round(clients, round_number=round_number, registry=registry, rng=rng)
+
+    assert registry.current.version == 12
+    assert registry.current.check_accuracy is not None
+    assert registry.current.check_accuracy > starting_accuracy + 0.05
 
 
 def test_every_entry_has_a_positive_epsilon() -> None:

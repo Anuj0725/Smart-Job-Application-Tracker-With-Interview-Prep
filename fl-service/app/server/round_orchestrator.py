@@ -38,14 +38,6 @@ class RoundOutcome:
     check_accuracy: float | None = None
 
 
-def _check_accuracy(parameters: list[np.ndarray]) -> float | None:
-    # The check set is built from the synthetic demo clients in app/demo, which are not here yet.
-    try:
-        return check_set_accuracy(parameters)
-    except ImportError:
-        return None
-
-
 def run_training_round(
     clients: dict[str, ClientFeatures],
     round_number: int,
@@ -91,7 +83,7 @@ def run_training_round(
     result = run_round(strategy, round_number, global_parameters, updates)
     check_accuracy = None
     if result.accepted:
-        check_accuracy = _check_accuracy(result.parameters)
+        check_accuracy = check_set_accuracy(result.parameters)
         registry.publish(result.parameters, round_number=round_number, participant_count=result.participant_count, check_accuracy=check_accuracy)
     reason = result.reason
     if not result.accepted and not updates:
