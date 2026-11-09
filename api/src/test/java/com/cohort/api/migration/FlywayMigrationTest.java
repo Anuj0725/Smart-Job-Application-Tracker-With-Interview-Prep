@@ -68,6 +68,9 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             assertThat(columnExists(connection, "notifications", "related_entity_id")).isTrue();
             assertThat(columnExists(connection, "notifications", "dedupe_key")).isTrue();
             assertThat(columnExists(connection, "notifications", "is_read")).isTrue();
+            assertThat(tableExists(connection, "contacts")).isTrue();
+            assertThat(tableExists(connection, "company_notes")).isTrue();
+            assertThat(columnExists(connection, "contacts", "referral_status")).isTrue();
         }
     }
 
@@ -86,7 +89,8 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             }
             assertThat(versions).containsExactly(
                     "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
-                    "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24");
+                    "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24",
+                    "25", "26");
         }
     }
 
@@ -137,6 +141,26 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             try (ResultSet rs = statement.executeQuery("SELECT count(*) FROM report_exports WHERE file_path = 'k'")) {
                 rs.next();
                 assertThat(rs.getLong(1)).as("report exports cascade with their owner").isZero();
+            }
+        }
+    }
+
+    @Test
+    void contactsTableConstraintsHold() throws Exception {
+        try (Connection connection = dataSource.getConnection(); var statement = connection.createStatement()) {
+            statement.execute("INSERT INTO users (email, password_hash) VALUES ('v25@example.com', 'x')");
+            String uid = "(SELECT id FROM users WHERE email = 'v25@example.com')";
+
+            assertThat(statement.executeUpdate("INSERT INTO contacts (user_id, name, referral_status) VALUES (" + uid + ", 'A', 'requested')")).isEqualTo(1);
+            assertViolates(statement, "INSERT INTO contacts (user_id, name, referral_status) VALUES (" + uid + ", 'B', 'maybe')");
+
+            assertThat(statement.executeUpdate("INSERT INTO notifications (user_id, type, title, body, related_entity_type, related_entity_id) "
+                    + "VALUES (" + uid + ", 'cold_contact', 't25', 'b', 'contact', gen_random_uuid())")).isEqualTo(1);
+
+            statement.execute("DELETE FROM users WHERE email = 'v25@example.com'");
+            try (ResultSet rs = statement.executeQuery("SELECT count(*) FROM contacts WHERE name = 'A'")) {
+                rs.next();
+                assertThat(rs.getLong(1)).as("contacts cascade with their owner").isZero();
             }
         }
     }
