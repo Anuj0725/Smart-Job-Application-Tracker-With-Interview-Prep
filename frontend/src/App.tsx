@@ -22,12 +22,17 @@ import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
 import { PrepPage } from '@/pages/prep/PrepPage'
 import { QuestionBankPage } from '@/pages/prep/QuestionBankPage'
 import { MockInterviewPage } from '@/pages/prep/MockInterviewPage'
+import { PrivacyPage } from '@/pages/privacy/PrivacyPage'
+import { PrivacyPolicyPage } from '@/pages/privacy/PrivacyPolicyPage'
+import { HelpPage } from '@/pages/help/HelpPage'
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/help" element={<HelpPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
@@ -51,6 +56,7 @@ function App() {
           <Route path="/prep" element={<PrepPage />} />
           <Route path="/prep/questions" element={<QuestionBankPage />} />
           <Route path="/prep/mock-interview" element={<MockInterviewPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
