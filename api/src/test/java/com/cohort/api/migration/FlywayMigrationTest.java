@@ -71,6 +71,8 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             assertThat(tableExists(connection, "contacts")).isTrue();
             assertThat(tableExists(connection, "company_notes")).isTrue();
             assertThat(columnExists(connection, "contacts", "referral_status")).isTrue();
+            assertThat(tableExists(connection, "offers")).isTrue();
+            assertThat(columnExists(connection, "offers", "response_deadline")).isTrue();
         }
     }
 
@@ -90,7 +92,7 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             assertThat(versions).containsExactly(
                     "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
                     "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24",
-                    "25", "26");
+                    "25", "26", "27");
         }
     }
 
