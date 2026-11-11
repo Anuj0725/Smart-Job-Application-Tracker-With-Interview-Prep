@@ -25,6 +25,13 @@ import { MockInterviewPage } from '@/pages/prep/MockInterviewPage'
 import { PrivacyPage } from '@/pages/privacy/PrivacyPage'
 import { PrivacyPolicyPage } from '@/pages/privacy/PrivacyPolicyPage'
 import { HelpPage } from '@/pages/help/HelpPage'
+import { ContactsPage } from '@/pages/contacts/ContactsPage'
+import { CompaniesPage } from '@/pages/companies/CompaniesPage'
+import { CompanyDetailPage } from '@/pages/companies/CompanyDetailPage'
+import { OffersPage } from '@/pages/offers/OffersPage'
+import { GoalsPage } from '@/pages/goals/GoalsPage'
+import { DirectoryPage } from '@/pages/directory/DirectoryPage'
+import { DirectoryProfilePage } from '@/pages/directory/DirectoryProfilePage'
 
 function App() {
   return (
@@ -57,6 +64,13 @@ function App() {
           <Route path="/prep/questions" element={<QuestionBankPage />} />
           <Route path="/prep/mock-interview" element={<MockInterviewPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/contacts" element={<ContactsPage />} />
+          <Route path="/companies" element={<CompaniesPage />} />
+          <Route path="/companies/:id" element={<CompanyDetailPage />} />
+          <Route path="/offers" element={<OffersPage />} />
+          <Route path="/goals" element={<GoalsPage />} />
+          <Route path="/directory" element={<DirectoryPage />} />
+          <Route path="/directory/:slug" element={<DirectoryProfilePage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
