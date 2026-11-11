@@ -77,6 +77,7 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
             assertThat(columnExists(connection, "goals", "weekly_target")).isTrue();
             assertThat(tableExists(connection, "company_profiles")).isTrue();
             assertThat(tableExists(connection, "company_role_patterns")).isTrue();
+            assertThat(tableExists(connection, "experience_contributions")).isTrue();
         }
     }
 
@@ -97,7 +98,7 @@ class FlywayMigrationTest extends AbstractIntegrationTest {
                     "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
                     "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24",
                     "25", "26", "27", "28", "29",
-                    "70", "71", "72", "73", "74", "75", "76", "77", "78");
+                    "70", "71", "72", "73", "74", "75", "76", "77", "78", "90");
         }
     }
 
