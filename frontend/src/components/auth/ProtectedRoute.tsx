@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -5,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth'
  * Renders a loading placeholder while the session is being resolved (token
  * present but profile not yet fetched/refreshed), otherwise redirects to
  * /login — preserving the attempted location so login can return here. */
-export function ProtectedRoute() {
+export function ProtectedRoute({ signedOutHome }: { signedOutHome?: ReactNode } = {}) {
   const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
 
@@ -18,6 +19,9 @@ export function ProtectedRoute() {
   }
 
   if (!isAuthenticated) {
+    if (signedOutHome && location.pathname === '/') {
+      return <>{signedOutHome}</>
+    }
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
