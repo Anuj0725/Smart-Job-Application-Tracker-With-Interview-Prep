@@ -46,6 +46,7 @@ describe('AppShell', () => {
         timezone: null,
         fl_opt_in: false,
         fl_privacy_posture: 'balanced',
+        onboarded: true,
         created_at: '',
       },
       isLoading: false,
@@ -130,6 +131,29 @@ describe('AppShell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByTestId('where').textContent).toBe('/')
     expect(screen.getByLabelText('Notes')).toHaveValue('?ngp')
+  })
+
+  it('sends a user who has not onboarded to the onboarding page', async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      ...vi.mocked(useAuth)(),
+      user: { id: '1', email: 'new@example.com', display_name: 'New', target_role: null, graduation_year: null, target_date: null, onboarded: false, timezone: null, fl_opt_in: false, fl_privacy_posture: 'balanced', created_at: '' },
+    })
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <TooltipProvider>
+          <MemoryRouter initialEntries={['/']}>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route path="*" element={<Where />} />
+              </Route>
+              <Route path="/onboarding" element={<Where />} />
+            </Routes>
+          </MemoryRouter>
+        </TooltipProvider>
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/onboarding'))
   })
 
   it('shows breadcrumbs for detail pages', () => {
