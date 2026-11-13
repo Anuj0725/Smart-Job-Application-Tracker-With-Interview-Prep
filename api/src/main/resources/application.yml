@@ -128,3 +128,7 @@ resilience4j:
 cohort:
   contributions:
     salt: ${CONTRIBUTION_SALT:local-development-salt}
+# The OpenAPI document is only for the endpoint security suite, not served in a running app.
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
