@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * test class itself, not on an inherited superclass.
  */
 @Testcontainers
-// Most suites register users and use them straight away; EmailVerificationIntegrationTest covers the required path.
+// Most suites register users and use them straight away; EmailCodeIntegrationTest covers the required path.
 @TestPropertySource(properties = "app.auth.email-verification-required=false")
 public abstract class AbstractIntegrationTest {
 

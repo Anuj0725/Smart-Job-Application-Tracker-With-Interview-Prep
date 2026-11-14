@@ -7,6 +7,7 @@ import com.cohort.api.exception.InvalidAuthTokenException;
 import com.cohort.api.repository.AuthTokenRepository;
 import com.cohort.api.repository.RefreshTokenRepository;
 import com.cohort.api.repository.UserRepository;
+import com.cohort.api.security.LoginRateLimiter;
 import com.cohort.api.security.PasswordPolicyValidator;
 import com.cohort.api.service.mail.MailSender;
 import java.nio.charset.StandardCharsets;
@@ -23,8 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Emailed single-use links for confirming an address and for resetting a password.
- * Only the SHA-256 hash of a token is stored, so a database read never gives anyone a usable link.
+ * Six-digit emailed codes for confirming an email address and for resetting a password.
+ * Codes are stored salted and hashed, expire, work once, and stop working after a few wrong guesses.
  */
 @Service
 public class AccountRecoveryService {
@@ -33,10 +34,11 @@ public class AccountRecoveryService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicyValidator passwordPolicyValidator;
+    private final LoginRateLimiter codeRateLimiter;
     private final MailSender mailSender;
-    private final String frontendBaseUrl;
-    private final Duration resetTtl;
-    private final Duration verificationTtl;
+    private final Duration codeTtl;
+    private final int maxAttempts;
+    private final Duration resendCooldown;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AccountRecoveryService(
@@ -45,33 +47,35 @@ public class AccountRecoveryService {
             RefreshTokenRepository refreshTokenRepository,
             PasswordEncoder passwordEncoder,
             PasswordPolicyValidator passwordPolicyValidator,
+            LoginRateLimiter codeRateLimiter,
             MailSender mailSender,
-            @Value("${app.frontend-base-url}") String frontendBaseUrl,
-            @Value("${app.auth.reset-token-ttl-minutes}") long resetTtlMinutes,
-            @Value("${app.auth.verification-token-ttl-hours}") long verificationTtlHours) {
+            @Value("${app.auth.code.ttl-minutes}") long codeTtlMinutes,
+            @Value("${app.auth.code.max-attempts}") int maxAttempts,
+            @Value("${app.auth.code.resend-cooldown-seconds}") long resendCooldownSeconds) {
         this.userRepository = userRepository;
         this.authTokenRepository = authTokenRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicyValidator = passwordPolicyValidator;
+        this.codeRateLimiter = codeRateLimiter;
         this.mailSender = mailSender;
-        this.frontendBaseUrl = frontendBaseUrl;
-        this.resetTtl = Duration.ofMinutes(resetTtlMinutes);
-        this.verificationTtl = Duration.ofHours(verificationTtlHours);
+        this.codeTtl = Duration.ofMinutes(codeTtlMinutes);
+        this.maxAttempts = maxAttempts;
+        this.resendCooldown = Duration.ofSeconds(resendCooldownSeconds);
     }
 
     // Silent for unknown emails so the response never reveals whether an account exists.
     @Transactional
     public void requestPasswordReset(String email) {
-        userRepository.findByEmail(email).ifPresent(user -> sendLink(user, Purpose.password_reset));
+        userRepository.findByEmail(email).ifPresent(user -> sendCode(user, Purpose.password_reset, false));
     }
 
     @Transactional(noRollbackFor = InvalidAuthTokenException.class)
-    public void confirmPasswordReset(String token, String newPassword) {
+    public void confirmPasswordReset(String email, String code, String newPassword) {
         passwordPolicyValidator.validate(newPassword);
-        User user = consume(token, Purpose.password_reset);
+        User user = consume(email, code, Purpose.password_reset);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
-        // Getting the link in the inbox proves the user owns the address.
+        // Receiving the code proves the user owns the address.
         if (!user.isEmailVerified()) {
             user.markEmailVerified();
         }
@@ -81,7 +85,13 @@ public class AccountRecoveryService {
 
     @Transactional
     public void sendVerification(User user) {
-        sendLink(user, Purpose.email_verification);
+        sendCode(user, Purpose.email_verification, false);
+    }
+
+    /** After an email change; the cooldown is for the old address, so it does not apply. */
+    @Transactional
+    public void sendVerificationToNewAddress(User user) {
+        sendCode(user, Purpose.email_verification, true);
     }
 
     @Transactional
@@ -92,51 +102,82 @@ public class AccountRecoveryService {
     }
 
     @Transactional(noRollbackFor = InvalidAuthTokenException.class)
-    public User confirmVerification(String token) {
-        User user = consume(token, Purpose.email_verification);
+    public User confirmVerification(String email, String code) {
+        User user = consume(email, code, Purpose.email_verification);
         user.markEmailVerified();
         return userRepository.save(user);
     }
 
-    private void sendLink(User user, Purpose purpose) {
+    private void sendCode(User user, Purpose purpose, boolean ignoreCooldown) {
         Instant now = Instant.now();
+        boolean sentRecently = !ignoreCooldown && authTokenRepository
+                .findFirstByUser_IdAndPurposeOrderByCreatedAtDesc(user.getId(), purpose)
+                .map(last -> last.getCreatedAt() != null && last.getCreatedAt().isAfter(now.minus(resendCooldown)))
+                .orElse(false);
+        if (sentRecently) {
+            return;
+        }
         authTokenRepository.invalidateOutstanding(user.getId(), purpose, now);
-        byte[] raw = new byte[32];
-        secureRandom.nextBytes(raw);
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
-        Duration ttl = purpose == Purpose.password_reset ? resetTtl : verificationTtl;
-        authTokenRepository.save(new AuthToken(user, purpose, sha256(token), now.plus(ttl)));
-
-        String path = purpose == Purpose.password_reset ? "/reset-password" : "/verify-email";
-        String link = frontendBaseUrl + path + "?token=" + token;
-        mailSender.send(user.getEmail(), subject(purpose), body(purpose, link));
+        String code = "%06d".formatted(secureRandom.nextInt(1_000_000));
+        authTokenRepository.save(new AuthToken(user, purpose, saltedHash(code), now.plus(codeTtl)));
+        mailSender.send(user.getEmail(), subject(purpose), body(purpose, code));
     }
 
-    private User consume(String token, Purpose purpose) {
-        AuthToken stored = authTokenRepository.findByTokenHash(sha256(token == null ? "" : token))
-                .filter(candidate -> candidate.getPurpose() == purpose)
-                .filter(candidate -> candidate.isUsable(Instant.now()))
-                .orElseThrow(InvalidAuthTokenException::new);
-        stored.markUsed(Instant.now());
-        authTokenRepository.save(stored);
-        return stored.getUser();
+    private User consume(String email, String code, Purpose purpose) {
+        String limiterKey = purpose + ":" + email;
+        codeRateLimiter.checkAllowed(limiterKey);
+        Instant now = Instant.now();
+        User user = userRepository.findByEmail(email).orElse(null);
+        AuthToken token = user == null ? null : authTokenRepository
+                .findFirstByUser_IdAndPurposeAndUsedAtIsNullOrderByCreatedAtDesc(user.getId(), purpose)
+                .filter(candidate -> candidate.isUsable(now))
+                .orElse(null);
+        if (token == null || !matches(token.getTokenHash(), code)) {
+            if (token != null) {
+                token.recordFailedAttempt(maxAttempts, now);
+                authTokenRepository.save(token);
+            }
+            codeRateLimiter.recordFailure(limiterKey);
+            throw new InvalidAuthTokenException();
+        }
+        token.markUsed(now);
+        codeRateLimiter.recordSuccess(limiterKey);
+        return user;
     }
 
     private static String subject(Purpose purpose) {
-        return purpose == Purpose.password_reset ? "Reset your Cohort password" : "Confirm your Cohort email";
+        return purpose == Purpose.password_reset ? "Your Cohort password reset code" : "Your Cohort sign-up code";
     }
 
-    private String body(Purpose purpose, String link) {
-        boolean reset = purpose == Purpose.password_reset;
+    private String body(Purpose purpose, String code) {
+        String action = purpose == Purpose.password_reset ? "reset your password" : "confirm your email";
         return """
-                Use this link to %s:
+                Your code to %s is %s
 
-                %s
+                It works once and expires in %d minutes. If you did not ask for it, you can ignore this email.
 
-                It works once and expires in %s. If you did not ask for it, you can ignore this email.
+                Cohort""".formatted(action, code, codeTtl.toMinutes());
+    }
 
-                Cohort""".formatted(reset ? "reset your password" : "confirm your email", link,
-                reset ? resetTtl.toMinutes() + " minutes" : verificationTtl.toHours() + " hours");
+    // Stored as salt$hash, so equal codes never collide and a leaked table does not list codes.
+    private String saltedHash(String code) {
+        byte[] salt = new byte[16];
+        secureRandom.nextBytes(salt);
+        String saltText = Base64.getUrlEncoder().withoutPadding().encodeToString(salt);
+        return saltText + "$" + sha256(saltText + ":" + code);
+    }
+
+    private boolean matches(String stored, String code) {
+        if (code == null || !code.matches("\\d{6}")) {
+            return false;
+        }
+        int separator = stored.indexOf('$');
+        if (separator < 0) {
+            return false;
+        }
+        String expected = stored.substring(separator + 1);
+        String actual = sha256(stored.substring(0, separator) + ":" + code);
+        return MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), actual.getBytes(StandardCharsets.UTF_8));
     }
 
     private static String sha256(String value) {

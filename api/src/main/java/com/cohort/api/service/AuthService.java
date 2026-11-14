@@ -104,8 +104,8 @@ public class AuthService {
     }
 
     @Transactional(noRollbackFor = InvalidAuthTokenException.class)
-    public AuthResponse confirmEmail(String token) {
-        return issueAuthResponse(accountRecoveryService.confirmVerification(token));
+    public AuthResponse confirmEmail(String email, String code) {
+        return issueAuthResponse(accountRecoveryService.confirmVerification(email, code));
     }
 
     @Transactional

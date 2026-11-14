@@ -47,7 +47,7 @@ public class UserService {
                 throw new EmailAlreadyInUseException();
             }
             user.setEmail(request.email());
-            accountRecoveryService.sendVerification(user);
+            accountRecoveryService.sendVerificationToNewAddress(user);
         }
         if (request.displayName() != null) {
             user.setDisplayName(request.displayName());
