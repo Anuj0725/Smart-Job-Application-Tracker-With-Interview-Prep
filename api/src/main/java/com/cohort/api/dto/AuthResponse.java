@@ -1,6 +1,6 @@
 package com.cohort.api.dto;
 
-/** Tokens are null when the account still has to confirm its email. */
+/** Tokens are null when the account still has to confirm its email with a code. */
 public record AuthResponse(UserSummary user, String accessToken, String refreshToken, boolean verificationRequired) {
 
     public static AuthResponse signedIn(UserSummary user, String accessToken, String refreshToken) {

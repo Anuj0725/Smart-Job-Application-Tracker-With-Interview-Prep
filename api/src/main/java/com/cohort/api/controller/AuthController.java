@@ -62,7 +62,7 @@ public class AuthController {
     @PostMapping("/password-reset/confirm")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
-        accountRecoveryService.confirmPasswordReset(request.token(), request.newPassword());
+        accountRecoveryService.confirmPasswordReset(request.email(), request.code(), request.newPassword());
     }
 
     @PostMapping("/email-verification/request")
@@ -71,9 +71,9 @@ public class AuthController {
         accountRecoveryService.requestVerification(request.email());
     }
 
-    /** A valid link confirms the address and signs the user in. */
+    /** A correct code confirms the address and signs the user in. */
     @PostMapping("/email-verification/confirm")
     public AuthResponse confirmEmailVerification(@Valid @RequestBody EmailVerificationConfirmRequest request) {
-        return authService.confirmEmail(request.token());
+        return authService.confirmEmail(request.email(), request.code());
     }
 }

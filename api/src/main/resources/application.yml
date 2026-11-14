@@ -64,8 +64,10 @@ app:
   auth:
     # Password sign-in is refused until the email is confirmed.
     email-verification-required: ${EMAIL_VERIFICATION_REQUIRED:true}
-    reset-token-ttl-minutes: 60
-    verification-token-ttl-hours: 24
+    code:
+      ttl-minutes: 10
+      max-attempts: 5
+      resend-cooldown-seconds: 60
     login-rate-limit:
       max-attempts: 10
       window-minutes: 15
