@@ -32,6 +32,8 @@ import { OffersPage } from '@/pages/offers/OffersPage'
 import { GoalsPage } from '@/pages/goals/GoalsPage'
 import { DirectoryPage } from '@/pages/directory/DirectoryPage'
 import { DirectoryProfilePage } from '@/pages/directory/DirectoryProfilePage'
+import { LandingPage } from '@/pages/landing/LandingPage'
+import { OnboardingPage } from '@/pages/onboarding/OnboardingPage'
 
 function App() {
   return (
@@ -40,7 +42,8 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/help" element={<HelpPage />} />
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute signedOutHome={<LandingPage />} />}>
+        <Route path="/onboarding" element={<OnboardingPage />} />
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
           <Route path="/applications" element={<ApplicationsListPage />} />
