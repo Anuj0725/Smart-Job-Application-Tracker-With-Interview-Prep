@@ -1,0 +1,4 @@
+# Dev profile: adds the seed migration on top of the normal ones.
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
