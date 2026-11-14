@@ -16,6 +16,7 @@ import { HandledRecommendations } from '@/components/recommendations/HandledReco
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageGuide } from '@/components/onboarding/PageGuide'
 import { ErrorState, LoadingCards } from '@/components/shared/QueryStates'
 import { Button } from '@/components/ui/button'
 import { RecommendationCard } from '@/components/recommendations/RecommendationCard'
@@ -93,9 +94,12 @@ export function RecommendationsPage() {
         title="Recommendations"
         description="Suggestions with their evidence."
         actions={
-          <span data-guide="lift">
-            <FederatedLiftToggle federated={federated} onChange={setFederated} disabled={recommendationsQuery.isFetching} />
-          </span>
+          <>
+            <PageGuide guideId="recommendations" />
+            <span data-guide="lift">
+              <FederatedLiftToggle federated={federated} onChange={setFederated} disabled={recommendationsQuery.isFetching} />
+            </span>
+          </>
         }
       />
 

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/use-auth'
 import { Search } from 'lucide-react'
 import { BrandGlyph } from '@/components/brand/BrandMark'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { CommandPalette } from '@/components/layout/CommandPalette'
+import { ProductTour } from '@/components/onboarding/ProductTour'
 import { ShortcutsDialog } from '@/components/layout/ShortcutsDialog'
 import { useShortcuts, type ShortcutAction } from '@/hooks/use-shortcuts'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
@@ -22,6 +24,7 @@ function prefersExpandedSidebar(): boolean {
 
 export function AppShell() {
   const { pathname } = useLocation()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -61,6 +64,10 @@ export function AppShell() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  if (user?.onboarded === false) {
+    return <Navigate to="/onboarding" replace />
+  }
 
   return (
     <SidebarProvider defaultOpen={prefersExpandedSidebar()}>
@@ -105,6 +112,7 @@ export function AppShell() {
       </SidebarInset>
       <MobileNav />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <ProductTour />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </SidebarProvider>
   )

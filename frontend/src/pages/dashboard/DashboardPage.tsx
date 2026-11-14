@@ -19,6 +19,8 @@ import { STATUS_LINE } from '@/lib/stage-lines'
 import type { ApplicationStatusValue, ApplicationSummary } from '@/lib/applications-api'
 import { ActionQueueList } from '@/components/dashboard/ActionQueueList'
 import { ProgressRing } from '@/components/dashboard/ProgressRing'
+import { LoadSampleDataButton } from '@/components/onboarding/LoadSampleDataButton'
+import { SampleDataBanner } from '@/components/onboarding/SampleDataBanner'
 import { cn } from '@/lib/utils'
 
 const TERMINAL_STATUSES = new Set(['REJECTED', 'WITHDRAWN', 'ACCEPTED', 'DECLINED'])
@@ -116,6 +118,18 @@ export function DashboardPage() {
           </Button>
         }
       />
+
+      <SampleDataBanner />
+
+      {!isLoading && !hasError && applications.length === 0 && (
+        <div className="flex flex-col items-start gap-3 rounded-md border border-dashed border-foreground/30 p-5">
+          <p className="text-display text-xl">Nothing on the climb yet</p>
+          <p className="text-sm text-muted-foreground">
+            Log your first application, or fill the app with sample data to look around. Sample rows are marked and can be removed in one click.
+          </p>
+          <LoadSampleDataButton />
+        </div>
+      )}
 
       <section aria-labelledby="line-heading" className="space-y-4">
         <BoardHeading id="line-heading" action={<PanelLink to="/applications/board">Open board</PanelLink>}>
