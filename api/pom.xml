@@ -89,6 +89,13 @@
       <version>2.4.0</version>
     </dependency>
     <dependency>
+      <!-- The endpoint security suite reads every endpoint from the OpenAPI
+           document. Off by default; tests switch it on. -->
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+      <version>2.8.9</version>
+    </dependency>
+    <dependency>
       <!-- OpenPDF is the LGPL/MPL-licensed fork of iText 4, so it carries no
            AGPL obligations, and needs no native dependencies. -->
       <groupId>com.github.librepdf</groupId>

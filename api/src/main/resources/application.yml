@@ -54,6 +54,9 @@ app:
     github:
       client-id: ${GITHUB_CLIENT_ID:}
       client-secret: ${GITHUB_CLIENT_SECRET:}
+    linkedin:
+      client-id: ${LINKEDIN_CLIENT_ID:}
+      client-secret: ${LINKEDIN_CLIENT_SECRET:}
   mail:
     # log writes emails to the server log; smtp sends them through spring.mail.
     sender: ${APP_MAIL_SENDER:log}
@@ -128,3 +131,7 @@ resilience4j:
 cohort:
   contributions:
     salt: ${CONTRIBUTION_SALT:local-development-salt}
+# The OpenAPI document is only for the endpoint security suite, not served in a running app.
+springdoc:
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
