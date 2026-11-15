@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,16 +29,16 @@ public class FlRound {
     @Column(name = "cohort_size", nullable = false)
     private int cohortSize;
 
-    @Transient
+    @Column(name = "sat_out_count", nullable = false)
     private int satOutCount;
 
-    @Transient
+    @Column(name = "model_version")
     private Integer modelVersion;
 
-    @Transient
+    @Column(name = "check_accuracy")
     private Double checkAccuracy;
 
-    @Transient
+    @Column(name = "noise_multiplier")
     private Double noiseMultiplier;
 
     @CreationTimestamp
