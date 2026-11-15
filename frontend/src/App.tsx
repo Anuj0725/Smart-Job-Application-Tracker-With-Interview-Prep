@@ -34,12 +34,21 @@ import { DirectoryPage } from '@/pages/directory/DirectoryPage'
 import { DirectoryProfilePage } from '@/pages/directory/DirectoryProfilePage'
 import { LandingPage } from '@/pages/landing/LandingPage'
 import { OnboardingPage } from '@/pages/onboarding/OnboardingPage'
+import { StoriesListPage } from '@/pages/stories/StoriesListPage'
+import { StoryDetailPage } from '@/pages/stories/StoryDetailPage'
+import { StoryFormPage } from '@/pages/stories/StoryFormPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
+import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage'
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/help" element={<HelpPage />} />
       <Route element={<ProtectedRoute signedOutHome={<LandingPage />} />}>
@@ -60,6 +69,10 @@ function App() {
           <Route path="/interviews/:id" element={<InterviewDetailPage />} />
           <Route path="/interviews/:id/edit" element={<InterviewFormPage />} />
           <Route path="/interviews/:id/debrief" element={<InterviewDebriefPage />} />
+          <Route path="/stories" element={<StoriesListPage />} />
+          <Route path="/stories/new" element={<StoryFormPage />} />
+          <Route path="/stories/:id" element={<StoryDetailPage />} />
+          <Route path="/stories/:id/edit" element={<StoryFormPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/recommendations" element={<RecommendationsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
