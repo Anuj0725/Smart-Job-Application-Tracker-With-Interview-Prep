@@ -40,6 +40,7 @@ import { StoryFormPage } from '@/pages/stories/StoryFormPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { VerifyEmailPage } from '@/pages/auth/VerifyEmailPage'
+import { FederatedLearningDemoPage } from '@/pages/privacy/FederatedLearningDemoPage'
 
 function App() {
   return (
@@ -80,6 +81,7 @@ function App() {
           <Route path="/prep/questions" element={<QuestionBankPage />} />
           <Route path="/prep/mock-interview" element={<MockInterviewPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/privacy/federated-learning" element={<FederatedLearningDemoPage />} />
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           <Route path="/companies/:id" element={<CompanyDetailPage />} />

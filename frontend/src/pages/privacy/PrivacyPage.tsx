@@ -1,12 +1,14 @@
-import { LockIcon, ScrollTextIcon, ShieldCheckIcon, ShieldOffIcon, SparklesIcon, UploadIcon } from 'lucide-react'
+import { LockIcon, ScrollTextIcon, ShieldCheckIcon, ShieldOffIcon, DownloadIcon, UploadIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getFlConsent, getFlSchema, listPrivacyLedger, optInFl, optOutFl } from '@/lib/fl-api'
+import { getFlDemoStatus } from '@/lib/fl-demo-api'
 import { PrivacyLedgerTable } from '@/components/privacy/PrivacyLedgerTable'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageGuide } from '@/components/onboarding/PageGuide'
 import { ErrorState, LoadingRows } from '@/components/shared/QueryStates'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { ToneBadge } from '@/components/shared/ToneBadge'
@@ -23,9 +25,9 @@ const PLAIN_LANGUAGE_POINTS = [
     body: 'Before anything is sent, the numbers are capped to a fixed size and have random noise added, so no single person can be picked out of the shared result.',
   },
   {
-    icon: SparklesIcon,
-    title: 'What you get back',
-    body: 'Benchmarks learned from the whole cohort, used to improve recommendations. You can switch this off at any time, and the ledger below shows everything that was ever sent.',
+    icon: DownloadIcon,
+    title: 'Benefits',
+    body: 'Benchmarks from all participants improve recommendations. You can switch this off at any time.',
   },
 ]
 
@@ -45,6 +47,8 @@ export function PrivacyPage() {
   const isBusy = optInMutation.isPending || optOutMutation.isPending
 
   const optedIn = consentQuery.data?.opted_in ?? false
+  // The demo endpoints only exist under the dev profile, so the link only shows where they answer.
+  const demoQuery = useQuery({ queryKey: ['fl-demo-status'], queryFn: getFlDemoStatus, retry: false })
 
   return (
     <div className="space-y-6">
@@ -59,9 +63,19 @@ export function PrivacyPage() {
             .
           </>
         }
+        actions={
+          <>
+            {demoQuery.isSuccess && (
+              <Button variant="outline" asChild>
+                <Link to="/privacy/federated-learning">Federated learning demo</Link>
+              </Button>
+            )}
+            <PageGuide guideId="privacy" />
+          </>
+        }
       />
 
-      <section aria-label="In plain language" className="stagger grid gap-3 md:grid-cols-3">
+      <section aria-label="In plain language" className="grid gap-3 md:grid-cols-3">
         {PLAIN_LANGUAGE_POINTS.map((point) => (
           <div key={point.title} className="surface-raised space-y-2 rounded-xl border p-4 sm:p-5">
             <span aria-hidden className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -73,6 +87,7 @@ export function PrivacyPage() {
         ))}
       </section>
 
+      <div data-guide="participation">
       <SectionCard
         title="Federated learning participation"
         action={!consentQuery.isLoading && <ToneBadge tone={optedIn ? 'success' : 'neutral'} dot>{optedIn ? 'Opted in' : 'Opted out'}</ToneBadge>}
@@ -83,7 +98,7 @@ export function PrivacyPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-2xl text-sm text-pretty text-muted-foreground">
               {optedIn
-                ? 'Your sanitised feature vector is included in the next federated round. You can withdraw at any time — withdrawal takes effect from the next round; anything already aggregated cannot be un-sent.'
+                ? 'Your sanitised feature vector is included in the next federated round. You can withdraw at any time. Withdrawal takes effect from the next round; anything already aggregated cannot be un-sent.'
                 : 'You are not contributing to the shared model. Nothing is ever exported while opted out.'}
             </p>
             {optedIn ? (
@@ -100,7 +115,9 @@ export function PrivacyPage() {
           </div>
         )}
       </SectionCard>
+      </div>
 
+      <div data-guide="schema">
       <SectionCard
         title="What is sent, exactly"
         description={schemaQuery.data ? `Exactly ${schemaQuery.data.feature_count} bounded numbers, derived only from your own activity. No raw counts, no free text, no identifiers.` : undefined}
@@ -132,10 +149,12 @@ export function PrivacyPage() {
           </div>
         )}
       </SectionCard>
+      </div>
 
+      <div data-guide="ledger">
       <SectionCard
         title="Privacy Ledger"
-        description="Everything this account has ever sent to the shared model, one row per round. Expand a row to see the exact vector that was transmitted after clipping and noise."
+        description="Everything this account has sent, one row per round. Expand a row to see the vector."
       >
         {ledgerQuery.isLoading && <LoadingRows rows={3} label="Loading the Privacy Ledger" />}
         {ledgerQuery.isError && <ErrorState title="Couldn't load the Privacy Ledger" error={ledgerQuery.error} onRetry={() => ledgerQuery.refetch()} />}
@@ -151,6 +170,7 @@ export function PrivacyPage() {
           <PrivacyLedgerTable entries={ledgerQuery.data} featureNames={schemaQuery.data?.features.map((feature) => feature.name)} />
         )}
       </SectionCard>
+      </div>
     </div>
   )
 }
